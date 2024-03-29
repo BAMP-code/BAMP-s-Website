@@ -172,6 +172,20 @@ nav li:first-child {
         top: 540px;
     }
 }
+@media (max-width: 430px) {
+    .aboutme-page h1 {
+        font-size: 40px;
+        left: 10px;
+    }
+    .aboutme-page h2 {
+        font-size: 23px;
+        top: 10px;
+        left: 200px;
+    }
+    .aboutme-page {
+        top: 490px;
+    }
+}
 @media (max-width: 390px) {
     .aboutme-page h1 {
         font-size: 30px;
@@ -183,7 +197,7 @@ nav li:first-child {
         font-size: 20px
     }
     .aboutme-page {
-        top: 440px;
+        top: 410px;
     }
 }
 @media (max-width: 300px) {
@@ -195,6 +209,9 @@ nav li:first-child {
         top: 0;
         left: 120px;
         font-size: 20px
+    }
+    .aboutme-page {
+        top: 350px;
     }
 }
 @media (max-width: 250px) {
