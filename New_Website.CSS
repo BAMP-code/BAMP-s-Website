@@ -191,6 +191,17 @@ nav li:first-child {
         font-size: 20px
     }
 }
+@media (max-width: 250px) {
+    .aboutme-page h1 {
+        font-size: 20px;
+        left: 0;
+    }
+    .aboutme-page h2 {
+        top: 30px;
+        left: 100px;
+        font-size: 15px
+    }
+}
 .second-page {
     margin: 0;
     padding: 0;
