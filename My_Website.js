@@ -1,4 +1,5 @@
 const aboutMe = document.querySelector('.aboutme-page');
+const initialTop = parseInt(window.getComputedStyle(aboutMe).top);
 
 //listen for the scroll
 window.addEventListener('scroll', () => {
@@ -9,7 +10,7 @@ window.addEventListener('scroll', () => {
         aboutMe.style.top = '230px'
     } else {
         aboutMe.style.transition = 'top 1.5s ease'
-        aboutMe.style.top = '610px'    }
+        aboutMe.style.top = initialTop + 'px' }
 });
 
 
