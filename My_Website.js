@@ -61,3 +61,19 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+document.addEventListener('DOMContentLoaded', function () {
+    const content = document.querySelector('slider .slides:nth-child(2) .content');
+
+    content.forEach(cont => {
+        cont.addEventListener('touchstart', function () {
+            this.classList.add('touch-active');
+        });
+        cont.addEventListener('touchend', function () {
+            setTimeout(() => {
+                this.classList.remove('touch-active');
+            }, 2000);
+        });
+    });
+});
+
+
