@@ -359,7 +359,9 @@ nav li:first-child {
     opacity: 1;
 }
 .slider .slides:nth-child(1) .content,
-.slider .slides:nth-child(2) .content {
+.slider .slides:nth-child(2) .content,
+.slider .slides:nth-child(3) .content,
+.slider .slides:nth-child(4) .content {
     transform: translateY(40px);
     transition-delay: 0.5s ;
 }
