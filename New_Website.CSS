@@ -365,7 +365,15 @@ nav li:first-child {
     transform: translateY(40px);
     transition-delay: 0.5s ;
 }
+.slider .slides:nth-child(1) .content,
+.slider .slides:nth-child(2) .content, 
+.slider .slides:nth-child(3) .content,
+.slider .slides:nth-child(4) .content {
+    transform: translateY(40px);
+    transition-delay: 0.5s ;
+}
 .slider .slides:nth-child(2) .content:hover,
+.slider .slides:nth-child(1) .content.touch-active,
 .slider .slides:nth-child(2) .content.touch-active, 
 .slider .slides:nth-child(3) .content.touch-active,
 .slider .slides:nth-child(4) .content.touch-active {
@@ -373,6 +381,7 @@ nav li:first-child {
     transition: 0.7s;
 }
 .slider .slides:nth-child(2) .content:hover h1,
+.slider .slides:nth-child(1) .content.touch-active h1,
 .slider .slides:nth-child(2) .content.touch-active h1, 
 .slider .slides:nth-child(3) .content.touch-active h1, 
 .slider .slides:nth-child(4) .content.touch-active h1 {
@@ -380,9 +389,10 @@ nav li:first-child {
     transition: 0.7s;
 }
 .slider .slides:nth-child(2) .content:hover p, 
+.slider .slides:nth-child(1) .content.touch-active p,
 .slider .slides:nth-child(2) .content.touch-active p,
 .slider .slides:nth-child(3) .content.touch-active p, 
-.slider .slides:nth-child(4) .content.touch-active p {
+.slider .slides:nth-child(4) .content.touch-active p{
     opacity: 1;
     transition: 0.7s;
 }
