@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Website</title>
+    <title>BAMP's Website</title>
     <meta name="description" content="Welcome! This is my website, Bryan's website, a place where I share some of my work.">
     <meta name="keywords" content="portofolio, web development, Bryan, BAMP, Software Engineer">
 
@@ -14,17 +14,17 @@
 <body>
     <nav>
         <ul class="side-bar">
-            <li onclick=hideSidebar()><a href="#"><svg xmlns="http://www.w3.org/2000/svg" height="26" viewBox="0 -960 960 960" width="26"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></a></li>
+            <li onclick=hideSidebar()><a href="#" class="sidebar-icon"><svg xmlns="http://www.w3.org/2000/svg" height="26" viewBox="0 -960 960 960" width="26"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></a></li>
             <li><a href="#about">About</a></li>
             <li><a href="mailto:pineda.bamp@gmail.com">Email</a></li>
             <li><a href="#projects">Projects</a></li>
         </ul>
         <ul>
             <li><a href="https://www.linkedin.com/in/bryan-medina-pineda-b5464424b">BAMP</a></li>
+            <li class="menu-botton" onclick=showSidebar()><a href="#" class="close-icon"><svg xmlns="http://www.w3.org/2000/svg" height="26" viewBox="0 -960 960 960" width="26"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></a></li>
             <li  class="hideOnMobile"><a href="#about">About</a></li>
             <li  class="hideOnMobile"><a href="mailto:pineda.bamp@gmail.com">Email</a></li>
             <li  class="hideOnMobile"><a href="#projects">Projects</a></li>
-            <li class="menu-botton" onclick=showSidebar()><a href="#"><svg xmlns="http://www.w3.org/2000/svg" height="26" viewBox="0 -960 960 960" width="26"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></a></li>
         </ul>
     </nav>
     <section class="intro-page">
@@ -44,44 +44,44 @@
     <section class="second-page">
         <div class="aboutme-page">
             <h1>ABOUT</h1>
-            <h2>Bryan is currently a student at Stanford University pursuing a Computer Science. 
+            <h2>Bryan is currently a student at Stanford University pursuing a Computer Science degree. 
                 Specifically, about how new and current technology can help millions of people around the word on their everyday. 
-                Powerlifting and videogames are among Bryan's other passions (currently playing Helldivers 2).</h2>
+                Powerlifting, videogames, and playing Piano are among Bryan's other passions.</h2>
         </div>
         <div class="container-projects" id="projects">
             <div class="slider">
                 <div class="slides" style="--img: url('GUI.jpg')">
                     <div class="content">
-                        <h2>Bio Printing User Interface</h2>
-                        <h1>CURRENT</h1>
-                        <p>Developing a friendly user interface where users can view
+                        <h2 class="card-title">Bio Printing User Interface</h2>
+                        <h1 class="card-status">CURRENT</h1>
+                        <p class="card-description">Developing a friendly user interface where users can view
                             and interact with 3D documents of human vessels.
                         </p>
                     </div>
                 </div>
                 <div class="slides" style="--img: url('for-her.jpg')">
                     <div class="content">
-                        <h2>Website To Ask Out Gilfriend</h2>
-                        <h1>COMPLETED</h1>
-                        <p> A website created for the sole purpose of asking out my girlfriend,
+                        <h2 class="card-title">Asking Pookie to Date</h2>
+                        <h1  class="card-status">COMPLETED</h1>
+                        <p class="card-description"> A website created for the sole purpose of asking out my girlfriend,
                             Daniela, on a date.
                         </p>
                     </div>
                 </div>
                 <div class="slides" style="--img: url('Cook.jpg')">
                     <div class="content">
-                        <h2>"Cook"</h2>
-                        <h1>COMPLETED</h1>
-                        <p> The drawing is that of a dog's friend, his name is coco but we call him 
+                        <h2 class="card-title">"Cook"</h2>
+                        <h1  class="card-status">COMPLETED</h1>
+                        <p class="card-description"> The drawing is that of a dog's friend, his name is coco but we call him 
                             cook. This was my first time taking on a serius drawing project.
                         </p>
                     </div>
                 </div>
                 <div class="slides" style="--img: url('Ghost.jpg')">
                     <div class="content">
-                        <h2>"Unnamed"</h2>
-                        <h1>COMPLETED</h1>
-                        <p> The drawing was inpired by my own research paper about patients suffering from schizophrenia.
+                        <h2 class="card-title">"Unnamed"</h2>
+                        <h1  class="card-status">COMPLETED</h1>
+                        <p class="card-description"> The drawing was inpired by my own research paper about patients suffering from schizophrenia.
                         </p>
                     </div>
                 </div>
@@ -90,6 +90,7 @@
                 <span class="prev"></span>
                 <span class="next"></span>
             </div>
-        </div>
+
     </section>
 </body>
+
