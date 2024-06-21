@@ -44,6 +44,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     sidebarLinks.forEach(link => {
         link.addEventListener('click', function (event) {
+
+            if (this.getAttribute('href').startsWith('mailto:')) {
+                return;
+            }
             event.preventDefault();
             
             hideSidebar();
@@ -56,3 +60,4 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
