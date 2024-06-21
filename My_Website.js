@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
         cont.addEventListener('touchend', function () {
             setTimeout(() => {
                 this.classList.remove('touch-active');
-            }, 2000);
+            }, 200);
         });
     });
 });
