@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-    const content = document.querySelector('slider .slides:nth-child(2) .content');
+    const content = document.querySelectorAll('slider .slides:nth-child(2) .content');
 
     content.forEach(cont => {
         cont.addEventListener('touchstart', function () {
