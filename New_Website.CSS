@@ -10,7 +10,7 @@ body {
     background-image: 
         linear-gradient(rgba(0,0,0,.2) .05rem, transparent .05rem),
         linear-gradient(90deg, rgba(0,0,0,.2) .05rem, transparent .05rem);
-        background-size: .5rem .5rem;
+    background-size: .5rem .5rem;
     font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
     align-items: center;
     justify-content:center;
@@ -237,7 +237,6 @@ nav li:first-child {
     background-color: rgba(10, 10, 10, 0);
     text-align: center;
 }
-
 .container-projects {
     position: absolute;
     width: 100vw;
@@ -246,6 +245,8 @@ nav li:first-child {
     display: flex;
     justify-content: center;
     align-items: center;
+    object-fit: cover;
+    cursor: pointer;
 }
 .slider {
     position: absolute;
@@ -322,40 +323,61 @@ nav li:first-child {
      opacity: 0.5;
 }
 .content {
-    position: relative;
-    padding: 40px;
-    max-width: 600px;
-    transition: 0.25s;
-    transition-delay: 0s;
-    transform: translateY(40px);
-    bottom: 40px;
-    z-index: 5;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: 20px;
+    width: 96%;
+    background-color: rgba(0 0 0/50%);
+    transform: translate(70px);
+    transition: 0.30s;
     opacity: 0;
-    font-family: 'Poppins';
+    color:rgb(245, 245, 236);
+    border-radius: 10%;
 }
 .content h2 {
      font-size: 2em;
-     color: black;
+     color: f0f0f0;
      text-shadow: -10px 10px 8px black;
 }
 .content h1 {
     font-size: 1em;
     font-style:oblique;
-    color: black;
+    color: f0f0f0;
     text-shadow: -10px 10px 8px black;
-
+    opacity: 0;
 }
 .content p {
     font-size: 1em;
-    color: black;
+    color: f0f0f0;
     text-shadow: -10px 10px 8px black;
-
+    opacity: 0;
+}
+.slider .slides:nth-child(2) .content {
+    height: 10%;
+    bottom: 40px;
+    opacity: 1;
 }
 .slider .slides:nth-child(1) .content,
 .slider .slides:nth-child(2) .content {
-    opacity: 1;
     transform: translateY(40px);
     transition-delay: 0.5s ;
+}
+.slider .slides:nth-child(2) .content:hover {
+    height: 50%;
+    transition: 0.7s;
+}
+.slider .slides:nth-child(2) .content:hover h1 {
+    opacity: 1;
+    transition: 0.7s;
+}
+.slider .slides:nth-child(2) .content:hover p {
+    opacity: 1;
+    transition: 0.7s;
+}
+.slider .slides:nth-child(2) .content:hover {
+    height: 50%;
+    transition: 0.7s;
 }
 @media (max-width: 900px) {
     .slider {
@@ -379,5 +401,134 @@ nav li:first-child {
     }
     .slider .slides:nth-child(4) {
         left: 120px ;
+    }
+}
+@media (max-width: 800px) {
+    .aboutme-page h2 {
+        top: 50px;
+        left: 300px;
+    }
+    .content {
+        width: 95%;
+    }
+}
+@media (max-width: 700px) {
+    .content {
+        width: 93%;
+    }
+}
+@media (max-width: 600px) {
+    .aboutme-page h2 {
+        font-size: 23px;
+    }
+    .content {
+        width: 90%;
+    }
+}
+@media (max-width: 500px) {
+    .aboutme-page h2 {
+        top: 20px;
+        left: 250px;
+        font-size: 22px;
+    }
+    .aboutme-page {
+        top: 540px;
+    }
+    .slider .slides:nth-child(2) .content {
+        top: -40px;
+        width: 90%;
+        height: 20%;
+    }
+}
+@media (max-width: 430px) {
+    .aboutme-page h1 {
+        font-size: 40px;
+        left: 10px;
+    }
+    .aboutme-page h2 {
+        font-size: 23px;
+        top: 10px;
+        left: 200px;
+    }
+    .aboutme-page {
+        top: 490px;
+    }
+    .slider .slides:nth-child(2) .content {
+        top: -40px;
+        width: 88%;
+        height: 30%;
+    }
+    .slider .slides:nth-child(2) .content:hover {
+        height: 70%;
+        transition: 0.7s;
+    }
+}
+@media (max-width: 390px) {
+    .aboutme-page h1 {
+        font-size: 30px;
+        left: 0;
+    }
+    .aboutme-page h2 {
+        top: 70px;
+        left: 120px;
+        font-size: 20px
+    }
+    .aboutme-page {
+        top: 410px;
+    }
+    .slider .slides:nth-child(2) .content {
+        top: -40px;
+        width: 80%;
+        height: 40%;
+    }
+    .slider .slides:nth-child(2) .content:hover {
+        height: 80%;
+        transition: 0.7s;
+    }
+}
+@media (max-width: 300px) {
+    .aboutme-page h1 {
+        font-size: 30px;
+        left: 0;
+    }
+    .aboutme-page h2 {
+        top: 0;
+        left: 120px;
+        font-size: 20px
+    }
+    .aboutme-page {
+        top: 350px;
+    }
+    .slider .slides:nth-child(2) .content {
+        top: -40px;
+        width: 75%;
+        height: 40%;
+    }
+    .slider .slides:nth-child(2) .content:hover {
+        height: 90%;
+        transition: 0.7s;
+    }
+}
+@media (max-width: 250px) {
+    .aboutme-page h1 {
+        font-size: 20px;
+        left: 0;
+    }
+    .aboutme-page h2 {
+        top: 30px;
+        left: 100px;
+        font-size: 15px
+    }
+    .aboutme-page {
+        top: 300px;
+    }
+    .slider .slides:nth-child(2) .content {
+        top: -40px;
+        width: 75%;
+        height: 40%;
+    }
+    .slider .slides:nth-child(2) .content:hover {
+        height: 90%;
+        transition: 0.7s;
     }
 }
