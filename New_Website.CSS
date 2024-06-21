@@ -363,20 +363,19 @@ nav li:first-child {
     transform: translateY(40px);
     transition-delay: 0.5s ;
 }
-.slider .slides:nth-child(2) .content:hover {
+.slider .slides:nth-child(2) .content:hover,
+.slider .slides:nth-child(2) .content.touch-active {
     height: 50%;
     transition: 0.7s;
 }
-.slider .slides:nth-child(2) .content:hover h1 {
+.slider .slides:nth-child(2) .content:hover h1,
+.slider .slides:nth-child(2) .content.touch-active h1 {
     opacity: 1;
     transition: 0.7s;
 }
-.slider .slides:nth-child(2) .content:hover p {
+.slider .slides:nth-child(2) .content:hover p,
+.slider .slides:nth-child(2) .content.touch-active p {
     opacity: 1;
-    transition: 0.7s;
-}
-.slider .slides:nth-child(2) .content:hover {
-    height: 50%;
     transition: 0.7s;
 }
 @media (max-width: 900px) {
