@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-    const content = document.querySelectorAll('.slider .slides:nth-child(2) .content, .slider .slides:nth-child(3) .content, .slider .slides:nth-child(4) .content');
+    const content = document.querySelectorAll('.slider .slides:nth-child(1) .content, .slider .slides:nth-child(2) .content, .slider .slides:nth-child(3) .content, .slider .slides:nth-child(4) .content');
 
     content.forEach(cont => {
         cont.addEventListener('touchstart', function () {
