@@ -163,3 +163,44 @@ launcher.addEventListener('click', () => {
         launcher.classList.add('expanded');
     }
 });
+
+const messagesContainer = document.getElementById('chatbot-messages');
+const inputField = document.getElementById('chatbot-input');
+
+const BACKEND_URL = "https://bamp-s-website.onrender.com/chat";
+
+inputField.addEventListener('keypress', async (event) => {
+    if (event.key === 'Enter' && inputField.value.trim() !== "") {
+        const userMessage = inputField.value;
+        appendMessage("You", userMessage);
+        inputField.value = "";
+
+        try {
+            const response = await fetch(BACKEND_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userMessage })
+            });
+
+            const data = await response.json();
+            if (data.response) {
+                appendMessage("CHATBOT", data.response);
+            } else {
+                appendMessage("CHATBOT", "Sorry, something went wrong!");
+            }
+        } catch (err) {
+            appendMessage("CHATBOT", "Sorry, the chatbot is currently unavailable.");
+            console.error(err);
+        }
+    }
+});
+
+function appendMessage(sender, message) {
+    const msgDiv = document.createElement('div');
+    msgDiv.classList.add('chat-message');
+    msgDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
+    messagesContainer.appendChild(msgDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
