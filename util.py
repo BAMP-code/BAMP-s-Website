@@ -58,17 +58,15 @@ def load_sentiment_dictionary(src_filename: str, delimiter: str = ',',
 
 @lru_cache
 def load_together_client():
-    together_client = None
-    try:
-        from api_keys import TOGETHER_API_KEY
+    TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
+    if not TOGETHER_API_KEY:
+        print("⚠️ WARNING: TOGETHER_API_KEY not set. LLM calls won't work.")
+        return None
 
-        together_client = OpenAI(api_key=TOGETHER_API_KEY,
-            base_url='https://api.together.xyz',
-        )
-    except ImportError:
-        print("\001\033[93m\002WARNING: Unable to load Together API client (TOGETHER_API_KEY in api_keys.py not found)\001\033[0m\002")
-        print("\001\033[93m\002LLM Calls will not work.  Please add a TOGETHER_API_KEY to api_keys.py before starting parts 2 and 3.\001\033[0m\002")
-
+    together_client = OpenAI(
+        api_key=TOGETHER_API_KEY,
+        base_url='https://api.together.xyz',
+    )
     return together_client
 
 def call_llm(messages, client, model="mistralai/Mixtral-8x7B-Instruct-v0.1", max_tokens=256):
