@@ -18,40 +18,35 @@ llm_history = [{
 user_movies = []
 
 def run_programming_mode(user_input):
-    """
-    Mimics REPL LLM programming mode:
-    - Extract emotions
-    - Check relevance
-    - Manage personality-based responses
-    """
-    # Preprocess input if chatbot supports it
+    # Preprocess input
     preprocessed_input = chatbot.preprocess(user_input) if hasattr(chatbot, 'preprocess') else user_input
 
-    # 1. Extract emotion (optional, but REPL programming mode does this)
-    if hasattr(chatbot, 'extract_emotion'):
-        emotions = chatbot.extract_emotion(preprocessed_input)
-    else:
-        emotions = []
+    # Extract emotion (optional)
+    emotions = chatbot.extract_emotion(preprocessed_input) if hasattr(chatbot, 'extract_emotion') else []
 
-    # 2. Check if input is irrelevant (arbitrary)
+    # Check if input is arbitrary/irrelevant
     if hasattr(chatbot, 'is_arbitrary') and chatbot.is_arbitrary(preprocessed_input):
+        # Input is irrelevant, respond with personality + gentle nudge
         response = chatbot.llm_mode_missing_title_message(user_input)
-        return response
-
-    # 4. Generate personality-based response
-    if hasattr(chatbot, 'llm_personality_response'):
-        response = chatbot.llm_personality_response(user_input)
     else:
-        # fallback: direct LLM call
-        llm_history.append({"role": "user", "content": user_input})
-        response = stream_llm_to_console(messages=llm_history, client=llm_client, stop=DEFAULT_STOP)
+        # Input is a movie title: give recommendation immediately
+        llm_history.append({"role": "user", "content": f"I liked the movie: {user_input}"})
+        
+        # Build personality-aware system prompt
+        personality_prompt = f"""
+        You are a movie-recommending AI that embodies the personality of Bryan Alexis Pineda.
+        Be kind, playful, sometimes humorous. 
+        **Give a movie recommendation if the user mentioned one movie. Do not ask follow-up questions about the movie.**
+        """
+        response = stream_llm_to_console(messages=llm_history, client=llm_client, stop=DEFAULT_STOP, system_prompt=personality_prompt)
         llm_history.append({"role": "assistant", "content": response})
 
-    # 5. Optionally, include emotion info in debug (if you want)
+    # Optionally append emotion info for debugging
     if emotions:
         response += f" (Detected emotions: {', '.join(emotions)})"
 
     return response
+
 
 
 @app.route("/chat", methods=["POST"])
