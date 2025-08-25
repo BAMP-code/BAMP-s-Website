@@ -39,9 +39,6 @@ def run_programming_mode(user_input):
     else:
         response = chatbot.llm_personality_response(preprocessed_input)
 
-    if emotions:
-        response += f" (Detected emotions: {', '.join(emotions)})"
-
     return response
 
 
