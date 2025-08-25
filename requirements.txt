@@ -1,0 +1,6 @@
+flask
+gunicorn
+requests
+numpy
+pydantic
+openai
