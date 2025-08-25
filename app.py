@@ -22,7 +22,7 @@ def chat():
     user_message = data.get("message", "")
 
     if not user_message:
-        return jsonify({"reply": "Please send a message!"})
+        return jsonify({"response": "Please send a message!"})
 
     # Add user message to LLM history
     llm_history.append({"role": "user", "content": user_message})
