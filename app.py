@@ -14,46 +14,36 @@ llm_history = [{
     "content": chatbot.llm_system_prompt(),
 }]
 
-def run_programming_mode(user_input):
-    """
-    Handles a single user message:
-    - Preprocess input
-    - Extract movie title
-    - Detect emotions
-    - Check relevance
-    - Respond with personality and immediate movie recommendation
-    """
+user_movies = []
 
-    # 1. Preprocess the input
+def run_programming_mode(user_input):
     preprocessed_input = chatbot.preprocess(user_input) if hasattr(chatbot, 'preprocess') else user_input
 
-    # 2. Extract movie title (if function exists)
-    movie_title = None
-    if hasattr(chatbot, 'extract_title'):
-        movie_title = chatbot.extract_title(preprocessed_input)
+    # Extract movie title
+    movie_title = chatbot.extract_title(preprocessed_input) if hasattr(chatbot, 'extract_title') else None
 
-    # 3. Detect emotions
+    # Detect emotions
     emotions = chatbot.extract_emotion(preprocessed_input) if hasattr(chatbot, 'extract_emotion') else []
 
-    # 4. Check if input is irrelevant (arbitrary)
-    is_irrelevant = hasattr(chatbot, 'is_arbitrary') and chatbot.is_arbitrary(preprocessed_input)
+    # Check if input is irrelevant
+    if hasattr(chatbot, 'is_arbitrary') and chatbot.is_arbitrary(preprocessed_input):
+        return chatbot.llm_mode_missing_title_message(user_input)
 
-    # 5. If input contains a movie title, give recommendation immediately
-    if movie_title and not is_irrelevant:
-        llm_message = f"I liked the movie: {movie_title}"
-        llm_history.append({"role": "user", "content": llm_message})
-        response = chatbot.llm_personality_response(llm_message)
+    # Track movies
+    if movie_title and movie_title not in user_movies:
+        user_movies.append(movie_title)
 
-        # Append detected emotions (optional)
-        if emotions:
-            response += f" (Detected emotions: {', '.join(emotions)})"
+    # Decide whether to give a recommendation
+    if wants_recommendation(user_input) or len(user_movies) >= 1:
+        response = chatbot.llm_personality_recommendation(preprocessed_input, user_movies)
+    else:
+        response = chatbot.llm_personality_response(preprocessed_input)
 
-        llm_history.append({"role": "assistant", "content": response})
-        return response
+    if emotions:
+        response += f" (Detected emotions: {', '.join(emotions)})"
 
-    # 6. If no movie title detected, prompt user to provide one
-    response = chatbot.llm_mode_missing_title_message(user_input)
     return response
+
 
 
 @app.route("/chat", methods=["POST"])
