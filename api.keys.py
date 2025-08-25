@@ -1,0 +1,4 @@
+import os
+
+TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
+print("DEBUG: TOGETHER_API_KEY =", TOGETHER_API_KEY)
