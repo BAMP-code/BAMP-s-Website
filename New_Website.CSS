@@ -484,3 +484,114 @@ nav li:first-child {
     opacity: 1;
     transform: translateY(0);
 }
+
+/* Chatbot launcher bubble */
+#chatbot-launcher {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background-color: #222;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 9998;
+}
+
+/* Text bubble initially hidden */
+#chatbot-launcher-text {
+    position: absolute;
+    bottom: 30px;
+    right: 70px;
+    background-color: #222;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(10px); /* small offset for nice effect */
+    pointer-events: none; /* prevents accidental hover issues */
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Show text on hover */
+#chatbot-launcher:hover #chatbot-launcher-text {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+#chatbot-launcher.expanded #chatbot-launcher-text {
+    opacity: 0 !important;
+    transform: translateX(10px);
+}
+
+/* Chat window */
+#chatbot-container {
+    display: none; /* hidden initially */
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 320px;
+    max-width: 90%;
+    height: 400px;
+    max-height: 70%;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+#chatbot-header {
+    background-color: #222;
+    color: #fff;
+    padding: 12px;
+    font-weight: bold;
+    text-align: center;
+}
+
+#chatbot-messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+#chatbot-input {
+    padding: 8px 12px;
+    border: none;
+    border-top: 1px solid #ccc;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    #chatbot-container {
+        width: 90%;
+        height: 50%;
+        bottom: 80px;
+        right: 5%;
+    }
+    #chatbot-launcher-text {
+        bottom: 65px;
+        right: 20px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 400px) {
+    #chatbot-container {
+        height: 45%;
+        bottom: 70px;
+    }
+    #chatbot-launcher-text {
+        bottom: 60px;
+        right: 15px;
+        font-size: 0.75rem;
+    }
+}

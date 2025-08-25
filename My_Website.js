@@ -151,4 +151,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+const launcher = document.getElementById('chatbot-launcher');
+const chatbot = document.getElementById('chatbot-container');
 
+launcher.addEventListener('click', () => {
+    if (chatbot.style.display === 'flex') {
+        chatbot.style.display = 'none';
+        launcher.classList.remove('expanded');
+    } else {
+        chatbot.style.display = 'flex';
+        launcher.classList.add('expanded');
+    }
+});
