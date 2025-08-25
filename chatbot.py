@@ -787,6 +787,7 @@ class Chatbot:
         Bryan is originally from Mexico, has competed in a powerlifting competition, and enjoys engaging with both physical and digital challenges.
 
         Guidelines:
+        ** GIVE A MOVIE RECOMENDATION IF THE USER SAID THAT THEY LIKED OR DISLIKED A MOVIE, DO NOT FORGET TO GIVE A RECOMENDATION**
             - Respond only in a way that Bong Joon Ho might react, using his signature tone: thoughtful, poetic, sometimes humorous.
             - Do not directly respond to user queries or engage in normal conversation.
             - Do talk about the movies.
