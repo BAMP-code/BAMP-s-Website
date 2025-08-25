@@ -38,14 +38,6 @@ def run_programming_mode(user_input):
         response = chatbot.llm_mode_missing_title_message(user_input)
         return response
 
-    # 3. Collect movies until we have 5
-    if len(user_movies) < 5:
-        user_movies.append(user_input)
-        if len(user_movies) < 5:
-            return f"Got it! Please tell me {5 - len(user_movies)} more movies you liked or disliked."
-        else:
-            return "Awesome! Now I can start giving you recommendations based on your movies."
-
     # 4. Generate personality-based response
     if hasattr(chatbot, 'llm_personality_response'):
         response = chatbot.llm_personality_response(user_input)
