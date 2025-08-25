@@ -688,37 +688,21 @@ class Chatbot:
         return res
     
     def is_arbitrary(self, preprocessed_input):
-        """LLM PROGRAMMING MODE: Extract relevancy from a line of pre-processed text."""
+    """Detect if input contains a movie (Relevant) or not (Irrelevant)."""
+    system_prompt = """
+    You are a bot that detects if a user input mentions a movie they liked or disliked.
+    Respond ONLY with 'Relevant' if it does, or 'Irrelevant' if it doesn't.
+    
+    Examples:
+    "I did not like 'Inception'." -> Relevant
+    "I liked 'Avatar'." -> Relevant
+    "What is the date today?" -> Irrelevant
+    "Can you solve my math homework?" -> Irrelevant
+    """
+    stop = ["\n"]
+    response = util.simple_llm_call(system_prompt, preprocessed_input, stop=stop).strip()
+    return False if response == "Relevant" else True
 
-        system_prompt = """
-        You are an bot designed to detect inputs unrelated to movie recommendations. Your task is to identify when an input is unrelated to the topic of movie recommendations.
-        - Analyze the user-provided input carefully and respond only with Relevant or Irrelevant.
-        - Do not provide explanations, comments, or additional text.
-        ** GIVE A MOVIE RECOMENDATION IF THE USER SAID THAT THEY LIKED OR DISLIKED A MOVIE, DO NOT FORGET TO GIVE A RECOMENDATION**
-
-        Example inputs and expected outputs:
-        "What is Normal Force?" -> Irrelevant
-        "Can you teach me how to solve linear equations in 2 variables?" -> Irrelevant
-        "What is the date today?"  -> Irrelevant
-        "Can you show me the highest grossing movies of 2025?" -> Irrelevant
-        I did not like "Inception". -> Relevant
-        "Charlie and the Chocolate Factory" was very fun to watch. -> Relevant
-        "Shrek" made me laugh so hard. -> Relevant
-        """
-
-        message = preprocessed_input
-
-        # Our llm will stop when it sees a newline character.
-        # You can add more stop tokens to the list if you want to stop on other tokens!
-        # Feel free to remove the stop parameter if you want the llm to run to completion.
-        stop = ["\n"]
-
-        response = util.simple_llm_call(system_prompt, message, stop=stop)
-
-        if response == "Relevant":
-            return False
-        else:
-            return True
     
     def llm_mode_missing_title_message(self, input):
         system_prompt = """You are a movie-recommending bot inspired by the Bryan Alexis Pineda. You are being used as a Chat-Bot in his personal website. You should answer like Bryan would.
