@@ -35,7 +35,7 @@ def chat():
     # Add assistant response to history
     llm_history.append({"role": "assistant", "content": response})
 
-    return jsonify({"reply": response})
+    return jsonify({"response": response})
 
 if __name__ == "__main__":
     import os
