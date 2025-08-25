@@ -3,10 +3,12 @@ from chatbot import Chatbot
 from util import load_together_client, DEFAULT_STOP, stream_llm_to_console
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from chatbot import Chatbot
 from util import load_together_client, DEFAULT_STOP, stream_llm_to_console
 
 app = Flask(__name__)
+CORS(app)
 
 # Initialize chatbot and LLM client
 chatbot = Chatbot(llm_enabled=True)
