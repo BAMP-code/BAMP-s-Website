@@ -28,39 +28,32 @@ def run_programming_mode(user_input):
     preprocessed_input = chatbot.preprocess(user_input) if hasattr(chatbot, 'preprocess') else user_input
 
     # 2. Extract movie title (if function exists)
+    movie_title = None
     if hasattr(chatbot, 'extract_title'):
         movie_title = chatbot.extract_title(preprocessed_input)
-    else:
-        movie_title = preprocessed_input  # fallback: assume entire input is a title
 
     # 3. Detect emotions
     emotions = chatbot.extract_emotion(preprocessed_input) if hasattr(chatbot, 'extract_emotion') else []
 
     # 4. Check if input is irrelevant (arbitrary)
-    if hasattr(chatbot, 'is_arbitrary') and chatbot.is_arbitrary(preprocessed_input):
-        response = chatbot.llm_mode_missing_title_message(user_input)
+    is_irrelevant = hasattr(chatbot, 'is_arbitrary') and chatbot.is_arbitrary(preprocessed_input)
+
+    # 5. If input contains a movie title, give recommendation immediately
+    if movie_title and not is_irrelevant:
+        llm_message = f"I liked the movie: {movie_title}"
+        llm_history.append({"role": "user", "content": llm_message})
+        response = chatbot.llm_personality_response(llm_message)
+
+        # Append detected emotions (optional)
+        if emotions:
+            response += f" (Detected emotions: {', '.join(emotions)})"
+
+        llm_history.append({"role": "assistant", "content": response})
         return response
 
-    # 5. Compose the message for the LLM
-    llm_message = f"I liked the movie: {movie_title}"
-
-    # Add to LLM history
-    llm_history.append({"role": "user", "content": llm_message})
-
-    # 6. Get personality-based recommendation
-    response = chatbot.llm_personality_response(llm_message)
-
-    # Append detected emotions (optional)
-    if emotions:
-        response += f" (Detected emotions: {', '.join(emotions)})"
-
-    # 7. Add bot response to history
-    llm_history.append({"role": "assistant", "content": response})
-
+    # 6. If no movie title detected, prompt user to provide one
+    response = chatbot.llm_mode_missing_title_message(user_input)
     return response
-
-
-
 
 
 @app.route("/chat", methods=["POST"])
