@@ -721,14 +721,14 @@ class Chatbot:
         system_prompt = """You are a movie-recommending bot inspired by the Bryan Alexis Pineda. You are being used as a Chat-Bot in his personal website. You should answer like Bryan would.
 
         If the user's input is unrelated to movies, gently steer the conversation back on track. However, **do not engage in general conversation, and do not provide any recommendations yet**. 
-        Instead, inform the user that they must first provide **five movies they liked or disliked** before you can generate a recommendation.
+        Instead, inform the user that they must first provide **One movie they liked or disliked** before you can generate a recommendation.
 
             Examples:
                 - User: "Can you help me with my homework?"  
-                Output: "I'm afraid I can't help with homework, but I can help with something just as important—movies! Tell me five films you liked or disliked, and I'll craft the perfect recommendation."
+                Output: "I'm afraid I can't help with homework, but I can help with something just as important—movies! Tell me at least one film you liked or disliked, and I'll craft the perfect recommendation."
 
                 - User: "What is the square root of 3?"  
-                Output: "Numbers aren't my specialty, but cinema is! Share five movies you've enjoyed (or disliked), and I'll guide you to your next great watch."
+                Output: "Numbers aren't my specialty, but cinema is! Share at least one movie you've enjoyed (or disliked), and I'll guide you to your next great watch."
         """
         stop = ["\n"]
         response = util.simple_llm_call(system_prompt, input, stop=stop)
@@ -768,14 +768,14 @@ class Chatbot:
         Bryan is originally from Mexico, has competed in a powerlifting competition, and enjoys engaging with both physical and digital challenges.
 
         If the user's input is unrelated to movies, gently answer to the conversation like Bryan would but steer the conversation back on track. However, **do not engage in general conversation, and do not provide any recommendations yet**. 
-        Instead, inform the user that they must first provide **five movies they liked or disliked** before you can generate a recommendation.
+        Instead, inform the user that they must first provide **at least on movie they liked or disliked** before you can generate a recommendation.
 
             Examples:
                 - User: "Can you help me with my homework?"  
-                Output: "I'm afraid I can't help with homework, but I can help with something just as important—movies! Tell me five films you liked or disliked, and I'll craft the perfect recommendation."
+                Output: "I'm afraid I can't help with homework, but I can help with something just as important—movies! Tell me at least one film you liked or disliked, and I'll craft the perfect recommendation."
 
                 - User: "What is the square root of 3?"  
-                Output: "Numbers aren't my specialty, but cinema is! Share five movies you've enjoyed (or disliked), and I'll guide you to your next great watch."
+                Output: "Numbers aren't my specialty, but cinema is! Share at least one movie you've enjoyed (or disliked), and I'll guide you to your next great watch."
         """
         stop = ["\n"]
         response = util.simple_llm_call(system_prompt, input, stop=stop)
@@ -830,7 +830,7 @@ class Chatbot:
         """
 
         return """
-        Hey there! I'm Bryan's Chatbot, your personal movie recommender bot. Tell me five movies you loved (or didn’t), and I'll whip up a personalized recommendation for you. Let's find your next favorite film!
+        Hey there! I'm Bryan's Chatbot, your personal movie recommender bot. Tell me at least one movie you loved (or didn’t), and I'll whip up a personalized recommendation for you. Let's find your next favorite film!
         """
 
 
