@@ -4,3 +4,4 @@ requests
 numpy
 pydantic
 openai
+flask-cors
