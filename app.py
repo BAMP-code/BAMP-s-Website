@@ -14,41 +14,51 @@ llm_history = [{
     "content": chatbot.llm_system_prompt(),
 }]
 
-# Track user movies
-user_movies = []
-
 def run_programming_mode(user_input):
+    """
+    Handles a single user message:
+    - Preprocess input
+    - Extract movie title
+    - Detect emotions
+    - Check relevance
+    - Respond with personality and immediate movie recommendation
+    """
+
+    # 1. Preprocess the input
     preprocessed_input = chatbot.preprocess(user_input) if hasattr(chatbot, 'preprocess') else user_input
+
+    # 2. Extract movie title (if function exists)
+    if hasattr(chatbot, 'extract_title'):
+        movie_title = chatbot.extract_title(preprocessed_input)
+    else:
+        movie_title = preprocessed_input  # fallback: assume entire input is a title
+
+    # 3. Detect emotions
     emotions = chatbot.extract_emotion(preprocessed_input) if hasattr(chatbot, 'extract_emotion') else []
 
+    # 4. Check if input is irrelevant (arbitrary)
     if hasattr(chatbot, 'is_arbitrary') and chatbot.is_arbitrary(preprocessed_input):
-        # Irrelevant input: personality + nudge
         response = chatbot.llm_mode_missing_title_message(user_input)
-    else:
-        # Input is a movie: force immediate recommendation
-        llm_history.append({"role": "user", "content": f"I liked the movie: {user_input}"})
+        return response
 
-        personality_prompt = f"""
-        You are a movie-recommending AI with the personality of Bryan Alexis Pineda.
-        Be kind, playful, sometimes humorous. 
-        **The user just gave a movie they liked or disliked. Immediately give a movie recommendation.**
-        Do NOT ask any follow-up questions about the movie or their preferences.  
-        Keep the response concise and in Bryan's tone.
-        """
+    # 5. Compose the message for the LLM
+    llm_message = f"I liked the movie: {movie_title}"
 
-        response = stream_llm_to_console(
-            messages=llm_history, 
-            client=llm_client, 
-            stop=DEFAULT_STOP, 
-            system_prompt=personality_prompt
-        )
+    # Add to LLM history
+    llm_history.append({"role": "user", "content": llm_message})
 
-        llm_history.append({"role": "assistant", "content": response})
+    # 6. Get personality-based recommendation
+    response = chatbot.llm_personality_response(llm_message)
 
+    # Append detected emotions (optional)
     if emotions:
         response += f" (Detected emotions: {', '.join(emotions)})"
 
+    # 7. Add bot response to history
+    llm_history.append({"role": "assistant", "content": response})
+
     return response
+
 
 
 
