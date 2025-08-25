@@ -34,7 +34,7 @@ def run_programming_mode(user_input):
         user_movies.append(movie_title)
 
     # Decide whether to give a recommendation
-    if wants_recommendation(user_input) or len(user_movies) >= 1:
+    if len(user_movies) >= 1:
         response = chatbot.llm_personality_recommendation(preprocessed_input, user_movies)
     else:
         response = chatbot.llm_personality_response(preprocessed_input)
