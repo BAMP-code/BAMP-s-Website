@@ -688,20 +688,20 @@ class Chatbot:
         return res
     
     def is_arbitrary(self, preprocessed_input):
-    """Detect if input contains a movie (Relevant) or not (Irrelevant)."""
-    system_prompt = """
-    You are a bot that detects if a user input mentions a movie they liked or disliked.
-    Respond ONLY with 'Relevant' if it does, or 'Irrelevant' if it doesn't.
-    
-    Examples:
-    "I did not like 'Inception'." -> Relevant
-    "I liked 'Avatar'." -> Relevant
-    "What is the date today?" -> Irrelevant
-    "Can you solve my math homework?" -> Irrelevant
-    """
-    stop = ["\n"]
-    response = util.simple_llm_call(system_prompt, preprocessed_input, stop=stop).strip()
-    return False if response == "Relevant" else True
+        """Detect if input contains a movie (Relevant) or not (Irrelevant)."""
+        system_prompt = """
+        You are a bot that detects if a user input mentions a movie they liked or disliked.
+        Respond ONLY with 'Relevant' if it does, or 'Irrelevant' if it doesn't.
+        
+        Examples:
+        "I did not like 'Inception'." -> Relevant
+        "I liked 'Avatar'." -> Relevant
+        "What is the date today?" -> Irrelevant
+        "Can you solve my math homework?" -> Irrelevant
+        """
+        stop = ["\n"]
+        response = util.simple_llm_call(system_prompt, preprocessed_input, stop=stop).strip()
+        return False if response == "Relevant" else True
 
     
     def llm_mode_missing_title_message(self, input):
