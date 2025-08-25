@@ -717,8 +717,6 @@ class Chatbot:
         else:
             return True
     
-    # Helper functions used in process that are called depending on what response the user requires.
-    # They add personality to the chat-bot.
     def llm_mode_missing_title_message(self, input):
         system_prompt = """You are a movie-recommending bot inspired by the Bryan Alexis Pineda. You are being used as a Chat-Bot in his personal website. You should answer like Bryan would.
 
@@ -745,7 +743,7 @@ class Chatbot:
             - Respond only in a way that Bryan might react, using his signature tone: kind, playful, sometimes humorous.
             - Do not directly respond to user queries or engage in normal conversation.
             - Do talk about the movies.
-            - Do not provide movie recommendations.
+            - You can talk about what Bryan likes if they ask you about him.
             - Do not assist with any tasks.
             - Instead, react to the input as if Bryan were contemplating it through a technical and playful lense.
             - Make reactions at most 20 words.
