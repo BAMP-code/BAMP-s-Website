@@ -1,0 +1,12 @@
+{
+  "name": "@bamp/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "files": ["next.js"],
+  "devDependencies": {
+    "@next/eslint-plugin-next": "^14.2.0",
+    "eslint-config-next": "^14.2.0",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-import": "^2.29.0"
+  }
+}
