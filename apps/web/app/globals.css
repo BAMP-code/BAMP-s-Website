@@ -18,6 +18,96 @@ body {
   overflow-x: hidden;
 }
 
+.welcome-line {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding: 0.06em 0.28em 0.14em;
+}
+
+.welcome-line + .welcome-line {
+  margin-top: -2px;
+}
+
+.welcome-text {
+  display: block;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: welcomeTextIn 920ms cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+  /* Text starts while box is fully covering it */
+  animation-delay: calc(var(--line-delay) + 860ms);
+}
+
+.welcome-box {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: #000000;
+  animation-duration: 2400ms;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
+  animation-fill-mode: forwards;
+  animation-delay: var(--line-delay);
+}
+
+.welcome-line-top .welcome-box {
+  animation-name: welcomeBoxRevealLtr;
+  bottom: -3px;
+}
+
+.welcome-line-bottom .welcome-box {
+  animation-name: welcomeBoxRevealLtr;
+  top: -3px;
+}
+
+@keyframes welcomeBoxRevealLtr {
+  0% {
+    opacity: 1;
+    clip-path: inset(0 100% 0 0);
+  }
+  28% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  58% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 100%);
+  }
+}
+
+@keyframes welcomeBoxRevealRtl {
+  0% {
+    opacity: 1;
+    clip-path: inset(0 0 0 100%);
+  }
+  28% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  58% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+@keyframes welcomeTextIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -26,5 +116,16 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .welcome-text {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    animation: none !important;
+  }
+
+  .welcome-box {
+    transform: translateX(108%) !important;
+    animation: none !important;
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
 
 export function BlackHoleHero() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -98,6 +99,25 @@ export function BlackHoleHero() {
       ref={sectionRef}
       className="relative flex h-screen items-center justify-center overflow-hidden bg-black"
     >
+      <div className="pointer-events-none absolute left-1/2 top-1/2 z-30 -translate-x-1/2 -translate-y-1/2">
+        <h1 className="text-center text-[clamp(1.4rem,4vw,3.1rem)] font-semibold tracking-[0.03em] text-[#f5f7ff]">
+          <span
+            className="welcome-line welcome-line-top"
+            style={{ "--line-delay": "1s" } as CSSProperties}
+          >
+            <span className="welcome-text">Welcome To</span>
+            <span className="welcome-box" aria-hidden="true" />
+          </span>
+          <span
+            className="welcome-line welcome-line-bottom"
+            style={{ "--line-delay": "1.58s" } as CSSProperties}
+          >
+            <span className="welcome-text">My Website</span>
+            <span className="welcome-box" aria-hidden="true" />
+          </span>
+        </h1>
+      </div>
+
       <div className="relative z-10 w-[min(82vw,620px)]">
         <svg
           viewBox="0 0 420 420"
