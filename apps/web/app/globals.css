@@ -38,6 +38,11 @@ body {
   animation-delay: calc(var(--line-delay) + 860ms);
 }
 
+.welcome-char {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+}
+
 .welcome-box {
   position: absolute;
   inset: 0;
@@ -57,6 +62,17 @@ body {
 .welcome-line-bottom .welcome-box {
   animation-name: welcomeBoxRevealLtr;
   top: -3px;
+}
+
+.intro-static .welcome-text {
+  opacity: 1;
+  transform: translateY(0);
+  animation: none;
+}
+
+.intro-static .welcome-box {
+  opacity: 0;
+  animation: none;
 }
 
 @keyframes welcomeBoxRevealLtr {
@@ -127,5 +143,12 @@ body {
   .welcome-box {
     transform: translateX(108%) !important;
     animation: none !important;
+  }
+
+  .welcome-char {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
   }
 }
