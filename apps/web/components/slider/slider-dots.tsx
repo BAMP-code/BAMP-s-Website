@@ -20,8 +20,8 @@ export function SliderDots({ total, current, onSelect }: SliderDotsProps) {
           aria-selected={i === current}
           aria-label={`Go to slide ${i + 1}`}
           onClick={() => onSelect(i, i > current ? 1 : -1)}
-          className={`h-3 w-3 cursor-pointer rounded-full transition-colors ${
-            i === current ? "bg-accent" : "bg-border"
+          className={`h-3 cursor-pointer rounded-full transition-all duration-300 ${
+            i === current ? "w-6 bg-accent" : "w-3 bg-border"
           }`}
         />
       ))}

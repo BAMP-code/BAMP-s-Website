@@ -29,7 +29,7 @@ export function SectionTitle({ children }: SectionTitleProps) {
   return (
     <h2
       ref={ref}
-      className={`section-title-gradient mb-10 text-center font-sans text-[2.4rem] font-extrabold tracking-[0.01em] transition-all sm:text-[2.8rem] ${
+      className={`section-title-gradient mb-10 text-center font-sans text-[2.4rem] font-extrabold tracking-[0.01em] transition-[transform,opacity] sm:text-[2.8rem] ${
         visible
           ? "translate-y-0 opacity-100"
           : "translate-y-6 opacity-0"

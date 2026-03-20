@@ -54,7 +54,7 @@ export function ChatbotWindow() {
           id="chatbot-window"
           role="dialog"
           aria-label="Movie recommendation chatbot"
-          className="fixed bottom-[90px] right-5 z-[9999] flex h-[400px] max-h-[70%] w-80 max-w-[90%] flex-col overflow-hidden rounded-chat border border-border bg-surface-alt shadow-chat"
+          className="fixed bottom-[90px] right-5 z-[9999] flex h-[400px] max-h-[70%] w-80 max-w-[90%] animate-fade-in flex-col overflow-hidden rounded-chat border border-border bg-surface-alt shadow-chat"
         >
           <div className="border-b border-border bg-surface px-3 py-3 text-center font-bold text-primary">
             Chat with Chatbot

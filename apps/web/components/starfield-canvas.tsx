@@ -103,9 +103,11 @@ export function StarfieldCanvas({ progressRef }: Props) {
       const h = canvas.clientHeight;
 
       // Stop drawing after stars have faded out
-      if (p > 0.90) {
-        ctx.clearRect(0, 0, w, h);
-        wasInactive = true;
+      if (p > 0.92) {
+        if (!wasInactive) {
+          ctx.clearRect(0, 0, w, h);
+          wasInactive = true;
+        }
         rafRef.current = requestAnimationFrame(draw);
         return;
       }
