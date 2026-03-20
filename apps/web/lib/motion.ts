@@ -22,4 +22,27 @@ export const motion = {
     duration: 260,
     translateY: 5,
   },
+  warp: {
+    /** Total scroll runway multiplier (5 × viewport height) */
+    runwayVh: 500,
+    /** Intro duration in ms before scroll takes over */
+    introDuration: 6200,
+    /** Star count desktop / mobile (<768px) */
+    starCount: 280,
+    starCountMobile: 150,
+    /** Focal length for perspective projection */
+    focalLength: 300,
+    /** Phase thresholds (progress 0→1) */
+    phases: {
+      starsAppear: [0, 0] as const,
+      warpAccel: [0.2, 0.6] as const,
+      bhFade: [0.25, 0.7] as const,
+      fullWarp: [0.55, 0.75] as const,
+      flash: [0.58, 0.72] as const,
+      reveal: [0.72, 0.92] as const,
+      settled: 0.92,
+    },
+    /** Card stagger offset per index */
+    cardStagger: 0.015,
+  },
 } as const;

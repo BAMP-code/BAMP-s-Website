@@ -152,4 +152,15 @@ body {
     opacity: 1 !important;
     filter: none !important;
   }
+
+  .warp-canvas {
+    display: none !important;
+  }
+
+  .warp-projects {
+    opacity: 1 !important;
+    transform: none !important;
+    position: relative !important;
+    visibility: visible !important;
+  }
 }
