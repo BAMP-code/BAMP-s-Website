@@ -173,7 +173,9 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
       container.removeEventListener("mouseleave", onLeave);
       window.cancelAnimationFrame(rafId);
     };
-  }, [shouldPlayIntro, progressRef]);
+    // progressRef is a stable ref — not a reactive value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldPlayIntro]);
 
   // Letter gravity-suck animation
   useEffect(() => {
@@ -427,7 +429,7 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
                 ref={turbulenceRef}
                 type="fractalNoise"
                 baseFrequency="0.011 0.018"
-                numOctaves="3"
+                numOctaves="2"
                 seed="8"
                 result="noise"
               />

@@ -78,12 +78,12 @@ export function ProjectsGrid({ progressRef }: Props) {
         if (!card) continue;
 
         const cardStart = 0.74 + i * cardStagger;
-        const cardEnd = cardStart + 0.10;
+        const cardEnd = cardStart + 0.18;
         const t = smoothstep(cardStart, cardEnd, p);
 
         if (t < 1) allSettled = false;
 
-        const scale = 0.7 + t * 0.3;
+        const scale = 0.85 + t * 0.15;
         const opacity = t;
         card.style.transform = `scale(${scale})`;
         card.style.opacity = String(opacity);
@@ -129,7 +129,7 @@ export function ProjectsGrid({ progressRef }: Props) {
                 className={`overflow-hidden rounded-xl ${
                   isFeatured ? "sm:col-span-2 sm:row-span-2" : ""
                 }`}
-                style={{ opacity: 0, transform: "scale(0.7)" }}
+                style={{ opacity: 0, transform: "scale(0.85)" }}
               >
                 <div className="group relative h-full min-h-[200px]">
                   <div

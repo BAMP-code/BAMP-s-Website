@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { motion } from "@/lib/motion";
 
 const { focalLength, phases } = motion.warp;
@@ -12,6 +12,7 @@ type Star = {
   z: number;
   hue: number;
   brightness: number;
+  colorBase: string;
   prevSX: number;
   prevSY: number;
 };
@@ -28,16 +29,19 @@ function smoothstep(edge0: number, edge1: number, x: number) {
 function createStars(count: number): Star[] {
   const stars: Star[] = [];
   for (let i = 0; i < count; i++) {
-    // Moderate baseZ spreads stars across the screen initially.
-    // As warpSpeed increases and z drops, they streak outward.
     const baseZ = 400 + Math.random() * 1200;
+    const hue = 210 + Math.random() * 40;
+    const brightness = Math.random();
+    // Pre-compute the color string so we don't allocate per-frame
+    const lightness = 70 + brightness * 30;
     stars.push({
       x: (Math.random() - 0.5) * 3000,
       y: (Math.random() - 0.5) * 3000,
       baseZ,
       z: baseZ,
-      hue: 210 + Math.random() * 40,
-      brightness: Math.random(),
+      hue,
+      brightness,
+      colorBase: `${hue}, 60%, ${lightness}%`,
       prevSX: 0,
       prevSY: 0,
     });
@@ -53,13 +57,6 @@ export function StarfieldCanvas({ progressRef }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const starsRef = useRef<Star[] | null>(null);
   const rafRef = useRef(0);
-
-  const getStarCount = useCallback(() => {
-    if (typeof window === "undefined") return motion.warp.starCount;
-    return window.innerWidth < 768
-      ? motion.warp.starCountMobile
-      : motion.warp.starCount;
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -80,7 +77,10 @@ export function StarfieldCanvas({ progressRef }: Props) {
     resize();
 
     if (!starsRef.current) {
-      starsRef.current = createStars(getStarCount());
+      const count = window.innerWidth < 768
+        ? motion.warp.starCountMobile
+        : motion.warp.starCount;
+      starsRef.current = createStars(count);
     }
     const stars = starsRef.current;
 
@@ -94,7 +94,6 @@ export function StarfieldCanvas({ progressRef }: Props) {
 
     let running = true;
     let wasInactive = true;
-    let finished = false;
 
     const draw = () => {
       if (!running) return;
@@ -103,19 +102,16 @@ export function StarfieldCanvas({ progressRef }: Props) {
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
 
-      // Stop drawing after stars have faded out
+      // Stop drawing after stars have faded out.
+      // Progress is one-way (monotonically increasing) so once past 0.92
+      // we can stop the RAF loop permanently.
       if (p > 0.92) {
         if (!wasInactive) {
           ctx.clearRect(0, 0, w, h);
           wasInactive = true;
         }
-        if (!finished) {
-          finished = true;
-          return;
-        }
         return;
       }
-      finished = false;
 
       // Reset prev positions to current projected positions when
       // entering active range, to prevent streaks from stale coords
@@ -167,7 +163,7 @@ export function StarfieldCanvas({ progressRef }: Props) {
           const radius = lerp(1, 2, closeness);
           ctx.beginPath();
           ctx.arc(sx, sy, radius, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${star.hue}, 60%, ${70 + star.brightness * 30}%, ${dotAlpha})`;
+          ctx.fillStyle = `hsla(${star.colorBase}, ${dotAlpha})`;
           ctx.fill();
         }
 
@@ -177,7 +173,7 @@ export function StarfieldCanvas({ progressRef }: Props) {
           ctx.beginPath();
           ctx.moveTo(star.prevSX, star.prevSY);
           ctx.lineTo(sx, sy);
-          ctx.strokeStyle = `hsla(${star.hue}, 60%, ${70 + star.brightness * 30}%, ${streakAlpha})`;
+          ctx.strokeStyle = `hsla(${star.colorBase}, ${streakAlpha})`;
           ctx.lineWidth = lw;
           ctx.stroke();
         }
@@ -213,7 +209,8 @@ export function StarfieldCanvas({ progressRef }: Props) {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", resize);
     };
-  }, [progressRef, getStarCount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <canvas

@@ -76,12 +76,14 @@ export function ProjectsTimeline() {
   const sectionRef = useRef<HTMLElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
   const translateXRef = useRef(0);
   const maxTranslateRef = useRef(0);
+  const pendingDeltaRef = useRef(0);
+  const rafIdRef = useRef(0);
 
   const [isCompact, setIsCompact] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -114,7 +116,7 @@ export function ProjectsTimeline() {
     return () => window.removeEventListener("resize", recalc);
   }, [reduceMotion]);
 
-  // Wheel-to-scroll: only when cursor is over the scroll area
+  // Wheel-to-scroll: RAF-batched for smooth 60fps updates
   useEffect(() => {
     if (isCompact || reduceMotion) return;
 
@@ -122,12 +124,32 @@ export function ProjectsTimeline() {
     const track = trackRef.current;
     if (!scrollArea || !track) return;
 
+    let rafScheduled = false;
+
+    const applyScroll = () => {
+      rafScheduled = false;
+      const max = maxTranslateRef.current;
+      if (max <= 0) return;
+
+      const next = Math.max(0, Math.min(max, translateXRef.current + pendingDeltaRef.current));
+      pendingDeltaRef.current = 0;
+      translateXRef.current = next;
+      track.style.transform = `translate3d(${-next}px, 0, 0)`;
+
+      // Update progress bar via DOM ref — no React re-render
+      if (progressBarRef.current) {
+        const progress = max > 0 ? next / max : 0;
+        const pct = Math.max(8, progress * 100);
+        progressBarRef.current.style.width = `${pct}%`;
+      }
+    };
+
     const onWheel = (e: WheelEvent) => {
       const max = maxTranslateRef.current;
       if (max <= 0) return;
 
       const delta = e.deltaY;
-      const prev = translateXRef.current;
+      const prev = translateXRef.current + pendingDeltaRef.current;
 
       // At the edges, let the page scroll through
       if (delta > 0 && prev >= max) return;
@@ -135,17 +157,20 @@ export function ProjectsTimeline() {
 
       e.preventDefault();
 
-      const next = Math.max(0, Math.min(max, prev + delta));
-      translateXRef.current = next;
-      track.style.transform = `translate3d(${-next}px, 0, 0)`;
+      // Accumulate delta — the RAF callback will apply it once per frame
+      pendingDeltaRef.current += delta;
 
-      const progress = max > 0 ? next / max : 0;
-      const nextActive = Math.round(progress * (projects.length - 1));
-      setActiveIndex((p) => (p === nextActive ? p : nextActive));
+      if (!rafScheduled) {
+        rafScheduled = true;
+        rafIdRef.current = requestAnimationFrame(applyScroll);
+      }
     };
 
     scrollArea.addEventListener("wheel", onWheel, { passive: false });
-    return () => scrollArea.removeEventListener("wheel", onWheel);
+    return () => {
+      scrollArea.removeEventListener("wheel", onWheel);
+      cancelAnimationFrame(rafIdRef.current);
+    };
   }, [isCompact, reduceMotion]);
 
   const timelineProjects = useMemo(() => {
@@ -164,9 +189,9 @@ export function ProjectsTimeline() {
       aria-label="Projects timeline"
     >
       <div className="mb-8">
-        <p className="mb-2 text-xs uppercase tracking-[0.28em] text-white/45">Selected Work</p>
+        <p className="mb-2 text-xs uppercase tracking-[0.28em] text-muted">Selected Work</p>
         <h2 className="text-3xl font-semibold text-white sm:text-5xl">Projects Timeline</h2>
-        <p className="mt-3 w-[min(92vw,980px)] text-sm leading-relaxed text-white/65 sm:text-base">
+        <p className="mt-3 w-[min(92vw,980px)] text-sm leading-relaxed text-muted sm:text-base">
           {isCompact || reduceMotion
             ? "Browse through my projects below."
             : "Hover over the timeline and scroll to explore projects."}
@@ -179,7 +204,7 @@ export function ProjectsTimeline() {
             const date = PROJECT_DATES[project.id] ?? "TBD";
             return (
               <article key={project.id} className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.2em] text-white/45">{date}</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-muted">{date}</p>
                 <h3 className="text-xl font-semibold text-white">{project.title}</h3>
                 <div className="overflow-hidden rounded-2xl">
                   <div className="h-[220px]">
@@ -195,7 +220,8 @@ export function ProjectsTimeline() {
                         width={project.media.width}
                         height={project.media.height}
                         className="h-full w-full object-contain"
-                        loading="eager"
+                        loading={index < 3 ? "eager" : "lazy"}
+                        priority={index < 2}
                         sizes="92vw"
                         quality={75}
                       />
@@ -214,7 +240,7 @@ export function ProjectsTimeline() {
           >
             <div
               ref={trackRef}
-              className="flex items-center gap-12 pb-2 pr-[20vw] will-change-transform"
+              className="flex items-center gap-12 pb-2 pr-[20vw]"
               style={{ transform: "translate3d(0px, 0, 0)" }}
             >
               {timelineProjects.map((project, index) => {
@@ -226,9 +252,12 @@ export function ProjectsTimeline() {
                 <article
                   key={project.id}
                   className={`${widthClass} shrink-0`}
-                  style={{ transform: `translateY(${yOffset}px)` }}
+                  style={{
+                    transform: `translateY(${yOffset}px)`,
+                    contain: "layout style paint",
+                  }}
                 >
-                  <p className="mb-2 text-xs uppercase tracking-[0.22em] text-white/45">{date}</p>
+                  <p className="mb-2 text-xs uppercase tracking-[0.22em] text-muted">{date}</p>
                   <h3 className="mb-4 text-2xl font-semibold text-white">{project.title}</h3>
                   <div className={`overflow-hidden rounded-3xl ${mediaHeightClass}`}>
                     {project.media.type === "video" ? (
@@ -243,7 +272,8 @@ export function ProjectsTimeline() {
                         width={project.media.width}
                         height={project.media.height}
                         className="h-full w-full object-contain"
-                        loading="eager"
+                        loading={index < 3 ? "eager" : "lazy"}
+                        priority={index < 2}
                         sizes="(max-width: 900px) 92vw, 42vw"
                         quality={75}
                       />
@@ -255,10 +285,11 @@ export function ProjectsTimeline() {
             </div>
           </div>
 
-          <div className="mt-4 h-[2px] w-full rounded-full bg-white/12">
+          <div className="mt-4 h-[2px] w-full rounded-full bg-border">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#ff5138] to-[#ffd066] transition-[width] duration-150"
-              style={{ width: `${Math.max(8, ((activeIndex + 1) / timelineProjects.length) * 100)}%` }}
+              ref={progressBarRef}
+              className="h-full rounded-full bg-gradient-to-r from-accent-secondary to-brand-core"
+              style={{ width: "8%", transition: "none" }}
             />
           </div>
         </>

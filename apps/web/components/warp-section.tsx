@@ -18,7 +18,6 @@ export function WarpSection() {
   const heroContentRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
   const maxProgressRef = useRef(0);
-  const maxScrollYRef = useRef(0);
   const introCompleteRef = useRef(false);
   const rafRef = useRef(0);
   const [showTopBar, setShowTopBar] = useState(false);
@@ -59,6 +58,44 @@ export function WarpSection() {
     setShowTopBar(true);
   }, []);
 
+  // Dampen scroll speed while the warp animation is active so the user
+  // can't rush through it. We intercept wheel events, cancel the native
+  // scroll, and re-apply at 40% speed.
+  useEffect(() => {
+    if (reduceMotion) return;
+
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const onWheel = (e: WheelEvent) => {
+      // Only dampen while the section is on-screen and animation is playing
+      const p = progressRef.current;
+      if (p >= 1) return;
+      if (!introCompleteRef.current) return;
+
+      const rect = section.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+
+      e.preventDefault();
+      // Progressive damping: light at the start, heavier during the action.
+      // 0–20% progress → 0.75x (barely noticeable)
+      // 20–80% progress → ramps down to 0.35x (cinematic slow-down)
+      // 80–100% progress → eases back to 0.65x (let the user finish)
+      let factor: number;
+      if (p < 0.2) {
+        factor = 0.75;
+      } else if (p < 0.8) {
+        factor = 0.75 - (p - 0.2) * (0.4 / 0.6); // 0.75 → 0.35
+      } else {
+        factor = 0.35 + (p - 0.8) * (0.3 / 0.2); // 0.35 → 0.65
+      }
+      window.scrollBy(0, e.deltaY * factor);
+    };
+
+    section.addEventListener("wheel", onWheel, { passive: false });
+    return () => section.removeEventListener("wheel", onWheel);
+  }, [reduceMotion]);
+
   // Scroll-driven progress + hero content reveal
   useEffect(() => {
     if (reduceMotion) {
@@ -87,24 +124,27 @@ export function WarpSection() {
       const scrolled = -rect.top;
       const maxScroll = sectionHeight - viewportHeight;
       const raw = maxScroll > 0 ? scrolled / maxScroll : 0;
-      // Consume the warp animation over a larger scroll portion
-      // to restore a slower, cinematic feel.
-      const nextProgress = Math.max(0, Math.min(1, raw / 0.68));
+      const nextProgress = Math.max(0, Math.min(1, raw));
       // One-way time jump: once advanced, never replay when user scrolls back up.
       maxProgressRef.current = Math.max(maxProgressRef.current, nextProgress);
       if (maxProgressRef.current > 0.98) {
         maxProgressRef.current = 1;
       }
+
+      // Progress directly tracks scroll — no lerp.
+      // The wheel damping above ensures the user can't rush the animation.
       progressRef.current = maxProgressRef.current;
 
-      // New hero content/buttons should appear only when user comes back up.
+      // Reveal hero content as the black hole fades away
       if (heroContent) {
-        const y = window.scrollY;
-        maxScrollYRef.current = Math.max(maxScrollYRef.current, y);
-        const returnDistance = Math.max(0, maxScrollYRef.current - y);
-        const contentT = smoothstep(20, window.innerHeight * 0.65, returnDistance);
+        const contentT = smoothstep(0.40, 0.70, progressRef.current);
         heroContent.style.opacity = String(contentT);
         heroContent.style.transform = `translateY(${(1 - contentT) * 24}px)`;
+      }
+
+      // Stop the RAF loop once the animation is done and section is off-screen.
+      if (progressRef.current >= 1 && rect.bottom < 0) {
+        return;
       }
 
       rafRef.current = requestAnimationFrame(update);
@@ -125,8 +165,8 @@ export function WarpSection() {
         <div className="flex min-h-[50vh] flex-col items-center justify-center px-6 text-center">
           <p className="text-xs uppercase tracking-[0.3em] text-accent/70">Bryan Pineda</p>
           <h2 className="mt-4 text-4xl font-bold text-white sm:text-6xl">BAMP</h2>
-          <p className="mt-4 max-w-lg text-base leading-relaxed text-white/60">
-            Embedded systems and intelligent products
+          <p className="mt-4 max-w-lg text-base leading-relaxed text-muted">
+            Building intelligent embedded systems
           </p>
         </div>
       </div>
@@ -137,7 +177,7 @@ export function WarpSection() {
     <div
       ref={sectionRef}
       className="relative bg-black"
-      style={{ height: "230vh" }}
+      style={{ height: "320vh" }}
     >
       <Header showTopBar={showTopBar} />
       <div className="sticky top-0 h-screen overflow-hidden">
@@ -153,8 +193,8 @@ export function WarpSection() {
           <h2 className="mt-3 text-5xl font-bold tracking-tight text-white sm:text-7xl">
             BAMP
           </h2>
-          <p className="mt-4 max-w-md text-center text-sm leading-relaxed text-white/50 sm:text-base">
-            Embedded systems and intelligent products
+          <p className="mt-4 max-w-md text-center text-sm leading-relaxed text-muted sm:text-base">
+            Building intelligent embedded systems
           </p>
           <div className="pointer-events-auto mt-8 flex gap-4">
             <a
@@ -182,7 +222,7 @@ export function WarpSection() {
 function Header({ showTopBar }: { showTopBar: boolean }) {
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-black/70 backdrop-blur-md transition-all duration-700 ${
+      className={`fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-black/90 transition-all duration-700 ${
         showTopBar ? "pointer-events-auto translate-y-0 opacity-100" : "pointer-events-none -translate-y-3 opacity-0"
       }`}
     >
@@ -190,7 +230,7 @@ function Header({ showTopBar }: { showTopBar: boolean }) {
         <a href="/" className="font-semibold tracking-[0.02em] text-white no-underline">
           BAMP
         </a>
-        <nav aria-label="Primary" className="flex items-center gap-5 text-white/75 sm:gap-7">
+        <nav aria-label="Primary" className="flex items-center gap-5 text-muted sm:gap-7">
           <a href="#projects" className="hidden transition-colors hover:text-white sm:block">
             projects
           </a>
@@ -201,7 +241,7 @@ function Header({ showTopBar }: { showTopBar: boolean }) {
             href={OUTLOOK_COMPOSE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden text-[#ff4f4f] transition-colors hover:text-[#ff8b8b] sm:block"
+            className="hidden text-accent-secondary transition-colors hover:text-accent-secondary/70 sm:block"
           >
             email me
           </a>
@@ -215,15 +255,15 @@ function Header({ showTopBar }: { showTopBar: boolean }) {
             href={OUTLOOK_COMPOSE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#ff4f4f] transition-colors hover:text-[#ff8b8b] sm:hidden"
+            className="text-accent-secondary transition-colors hover:text-accent-secondary/70 sm:hidden"
           >
             email
           </a>
         </nav>
       </div>
       <div className="border-t border-white/10">
-        <div className="mx-auto w-[min(96vw,1800px)] px-[clamp(10px,1.4vw,24px)] py-2 text-[11px] tracking-[0.08em] text-white/45">
-          <p>Bryan Pineda — Embedded systems and intelligent products</p>
+        <div className="mx-auto w-[min(96vw,1800px)] px-[clamp(10px,1.4vw,24px)] py-2 text-[11px] tracking-[0.08em] text-muted">
+          <p>Bryan Pineda — Building intelligent embedded systems</p>
         </div>
       </div>
     </header>

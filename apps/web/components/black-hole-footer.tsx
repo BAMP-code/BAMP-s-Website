@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 
 type BlackHoleFooterProps = {
@@ -14,23 +14,18 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
   const blurRef = useRef<SVGFEGaussianBlurElement>(null);
   const glowGradientRef = useRef<SVGRadialGradientElement>(null);
   const rafRef = useRef(0);
-  const [isVisible, setIsVisible] = useState(false);
+  const inViewportRef = useRef(false);
 
+  // Track viewport visibility for RAF gating
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
+        inViewportRef.current = entry.isIntersecting;
       },
-      {
-        threshold: 0.05,
-        // Reveal a bit before it fully enters viewport.
-        rootMargin: "0px 0px 24% 0px",
-      },
+      { threshold: 0.05, rootMargin: "0px 0px 24% 0px" },
     );
 
     observer.observe(section);
@@ -39,8 +34,6 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
 
   // Gentle idle animation for the turbulence filter
   useEffect(() => {
-    if (!isVisible) return;
-
     const section = sectionRef.current;
     const turbulence = turbulenceRef.current;
     const displacement = displacementRef.current;
@@ -85,6 +78,10 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
 
     const tick = (time: number) => {
       if (!running) return;
+      rafRef.current = requestAnimationFrame(tick);
+
+      // Skip expensive SVG filter updates when not in viewport
+      if (!inViewportRef.current) return;
 
       influence += (targetInfluence - influence) * 0.08;
       x += (targetX - x) * 0.1;
@@ -104,7 +101,6 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
       const cy2 = 50 + (y - 0.5) * 18 * influence;
       glowGradient.setAttribute("cx", `${cx2.toFixed(2)}%`);
       glowGradient.setAttribute("cy", `${cy2.toFixed(2)}%`);
-      rafRef.current = requestAnimationFrame(tick);
     };
 
     rafRef.current = requestAnimationFrame(tick);
@@ -115,15 +111,14 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
       section.removeEventListener("mousemove", onMove);
       section.removeEventListener("mouseleave", onLeave);
     };
-  }, [isVisible]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <section
       ref={sectionRef}
       aria-hidden={overlay ? undefined : true}
-      className={`relative overflow-hidden bg-black transition-[opacity,transform] duration-700 ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-      }`}
+      className="relative overflow-hidden bg-black"
       style={{ height: "clamp(320px, 56vw, 720px)" }}
     >
       {overlay ? (
@@ -132,7 +127,6 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
         </div>
       ) : null}
 
-      {/* Position the SVG so its center is near the bottom edge, showing only the top glow */}
       <div className="absolute inset-x-0 bottom-0 flex items-center justify-center"
         style={{ transform: "translateY(58%)" }}
       >
@@ -165,7 +159,7 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
                   ref={turbulenceRef}
                   type="fractalNoise"
                   baseFrequency="0.011 0.018"
-                  numOctaves="3"
+                  numOctaves="2"
                   seed="8"
                   result="noise"
                 />
@@ -195,28 +189,15 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
             <circle cx="210" cy="210" r="122" fill="url(#footerGasGlow)" opacity="0.82" />
 
             <ellipse
-              cx="210"
-              cy="210"
-              rx="126"
-              ry="90"
-              fill="none"
-              stroke="url(#footerGasBand)"
-              strokeWidth="30"
-              filter="url(#footerGasDistort)"
-              opacity="0.88"
+              cx="210" cy="210" rx="126" ry="90"
+              fill="none" stroke="url(#footerGasBand)" strokeWidth="30"
+              filter="url(#footerGasDistort)" opacity="0.88"
               transform="rotate(-12 210 210)"
             />
-
             <ellipse
-              cx="210"
-              cy="210"
-              rx="112"
-              ry="80"
-              fill="none"
-              stroke="url(#footerGasBand)"
-              strokeWidth="18"
-              filter="url(#footerGasDistort)"
-              opacity="0.74"
+              cx="210" cy="210" rx="112" ry="80"
+              fill="none" stroke="url(#footerGasBand)" strokeWidth="18"
+              filter="url(#footerGasDistort)" opacity="0.74"
               transform="rotate(-12 210 210)"
             />
 
