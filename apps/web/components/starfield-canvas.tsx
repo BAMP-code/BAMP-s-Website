@@ -94,6 +94,7 @@ export function StarfieldCanvas({ progressRef }: Props) {
 
     let running = true;
     let wasInactive = true;
+    let finished = false;
 
     const draw = () => {
       if (!running) return;
@@ -108,9 +109,13 @@ export function StarfieldCanvas({ progressRef }: Props) {
           ctx.clearRect(0, 0, w, h);
           wasInactive = true;
         }
-        rafRef.current = requestAnimationFrame(draw);
+        if (!finished) {
+          finished = true;
+          return;
+        }
         return;
       }
+      finished = false;
 
       // Reset prev positions to current projected positions when
       // entering active range, to prevent streaks from stale coords
@@ -132,7 +137,8 @@ export function StarfieldCanvas({ progressRef }: Props) {
 
       // Phase calculations — stars visible from the start
       const warpSpeed = smoothstep(phases.warpAccel[0], phases.warpAccel[1], p);
-      const fadeOut = 1 - smoothstep(phases.reveal[0], phases.reveal[1], p);
+      // Fade to a dim level but keep some stars visible
+      const fadeOut = 1 - smoothstep(phases.reveal[0], phases.reveal[1], p) * 0.85;
       // Gradual blend from dots to streaks
       const streakBlend = smoothstep(0.25, 0.45, p);
 

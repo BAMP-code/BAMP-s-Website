@@ -118,31 +118,26 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
       if (!running) return;
 
       const p = progressRef.current ?? 0;
-
-      // Kill filter pipeline when BH is gone
-      if (p > 0.72) {
-        container.style.visibility = "hidden";
-        rafId = window.requestAnimationFrame(tick);
+      if (p >= 1) {
         return;
       }
 
-      container.style.visibility = "visible";
+      // Black hole should feel like a distant time-jump object:
+      // it shrinks and fades away instead of translating downward.
+      const moveT = smoothstep(0.15, 0.70, p);
+      const bhScale = 1 - moveT * 0.88;
+      const bhOpacity = 1 - smoothstep(0.35, 0.82, p);
 
-      // Scroll-reactive BH transforms — only apply when actually scrolling
-      // to avoid GPU compositing that degrades SVG filter quality at rest
       if (p < 0.01) {
         container.style.opacity = "";
         container.style.transform = "";
       } else {
-        const bhFadeT = smoothstep(phases.bhFade[0], phases.bhFade[1], p);
-        const bhOpacity = 1 - bhFadeT;
-        const bhScale = 1 - bhFadeT * 0.7;
         container.style.opacity = String(bhOpacity);
-        container.style.transform = `scale(${bhScale})`;
+        container.style.transform = `translateY(0px) scale(${Math.max(0.08, bhScale).toFixed(3)})`;
       }
 
-      // Skip mouse interactivity when fading
-      if (p > 0.50) {
+      // Skip mouse interactivity once BH has moved significantly
+      if (p > 0.40) {
         rafId = window.requestAnimationFrame(tick);
         return;
       }

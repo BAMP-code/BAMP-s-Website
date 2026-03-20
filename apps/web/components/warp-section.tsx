@@ -8,9 +8,17 @@ import { motion } from "@/lib/motion";
 const OUTLOOK_COMPOSE_URL =
   "https://outlook.office.com/mail/deeplink/compose?to=pineda.bamp@gmail.com&subject=Portfolio%20Inquiry%20from%20Website";
 
+function smoothstep(edge0: number, edge1: number, x: number) {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
+
 export function WarpSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const heroContentRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
+  const maxProgressRef = useRef(0);
+  const maxScrollYRef = useRef(0);
   const introCompleteRef = useRef(false);
   const rafRef = useRef(0);
   const [showTopBar, setShowTopBar] = useState(false);
@@ -51,7 +59,7 @@ export function WarpSection() {
     setShowTopBar(true);
   }, []);
 
-  // Scroll-driven progress
+  // Scroll-driven progress + hero content reveal
   useEffect(() => {
     if (reduceMotion) {
       progressRef.current = 1;
@@ -59,6 +67,7 @@ export function WarpSection() {
     }
 
     const section = sectionRef.current;
+    const heroContent = heroContentRef.current;
     if (!section) return;
 
     let running = true;
@@ -78,7 +87,25 @@ export function WarpSection() {
       const scrolled = -rect.top;
       const maxScroll = sectionHeight - viewportHeight;
       const raw = maxScroll > 0 ? scrolled / maxScroll : 0;
-      progressRef.current = Math.max(0, Math.min(1, raw));
+      // Consume the warp animation over a larger scroll portion
+      // to restore a slower, cinematic feel.
+      const nextProgress = Math.max(0, Math.min(1, raw / 0.68));
+      // One-way time jump: once advanced, never replay when user scrolls back up.
+      maxProgressRef.current = Math.max(maxProgressRef.current, nextProgress);
+      if (maxProgressRef.current > 0.98) {
+        maxProgressRef.current = 1;
+      }
+      progressRef.current = maxProgressRef.current;
+
+      // New hero content/buttons should appear only when user comes back up.
+      if (heroContent) {
+        const y = window.scrollY;
+        maxScrollYRef.current = Math.max(maxScrollYRef.current, y);
+        const returnDistance = Math.max(0, maxScrollYRef.current - y);
+        const contentT = smoothstep(20, window.innerHeight * 0.65, returnDistance);
+        heroContent.style.opacity = String(contentT);
+        heroContent.style.transform = `translateY(${(1 - contentT) * 24}px)`;
+      }
 
       rafRef.current = requestAnimationFrame(update);
     };
@@ -95,6 +122,13 @@ export function WarpSection() {
     return (
       <div className="bg-black">
         <Header showTopBar={true} />
+        <div className="flex min-h-[50vh] flex-col items-center justify-center px-6 text-center">
+          <p className="text-xs uppercase tracking-[0.3em] text-accent/70">Bryan Pineda</p>
+          <h2 className="mt-4 text-4xl font-bold text-white sm:text-6xl">BAMP</h2>
+          <p className="mt-4 max-w-lg text-base leading-relaxed text-white/60">
+            Embedded systems and intelligent products
+          </p>
+        </div>
       </div>
     );
   }
@@ -103,10 +137,41 @@ export function WarpSection() {
     <div
       ref={sectionRef}
       className="relative bg-black"
-      style={{ height: `${motion.warp.runwayVh}vh` }}
+      style={{ height: "230vh" }}
     >
       <Header showTopBar={showTopBar} />
       <div className="sticky top-0 h-screen overflow-hidden">
+        {/* Hero content — revealed as the black hole moves down */}
+        <div
+          ref={heroContentRef}
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none"
+          style={{ opacity: 0 }}
+        >
+          <p className="text-xs uppercase tracking-[0.3em] text-accent/70 sm:text-sm">
+            Bryan Pineda
+          </p>
+          <h2 className="mt-3 text-5xl font-bold tracking-tight text-white sm:text-7xl">
+            BAMP
+          </h2>
+          <p className="mt-4 max-w-md text-center text-sm leading-relaxed text-white/50 sm:text-base">
+            Embedded systems and intelligent products
+          </p>
+          <div className="pointer-events-auto mt-8 flex gap-4">
+            <a
+              href="#projects"
+              className="rounded-full border border-white/20 px-5 py-2 text-sm text-white/80 transition-colors hover:border-white hover:text-white"
+            >
+              View Projects
+            </a>
+            <a
+              href="#about"
+              className="rounded-full border border-accent/30 px-5 py-2 text-sm text-accent/80 transition-colors hover:border-accent hover:text-accent"
+            >
+              About Me
+            </a>
+          </div>
+        </div>
+
         <BlackHoleHero progressRef={progressRef} onIntroComplete={onIntroComplete} />
         <StarfieldCanvas progressRef={progressRef} />
       </div>
