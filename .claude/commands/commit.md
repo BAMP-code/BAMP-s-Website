@@ -28,8 +28,10 @@ Run `git diff --staged` and `git diff` to see all changes. If nothing is staged,
 
 ## Step 4: Commit
 
+- **Split into logical commits**: Group related changes together into separate commits that each make sense on their own. For example, image compression should be its own commit, a new component should be its own commit, layout tweaks across files can be grouped, etc. Ask the user to confirm the proposed breakdown before committing.
 - Stage the relevant files (prefer explicit file paths over `git add .`)
 - Write a concise commit message that describes the **why**, not just the **what**
 - Use conventional style: lowercase, imperative mood (e.g., "add contact section with social links")
-- Present the commit message to the user for approval before committing
-- After committing, show the result with `git log --oneline -1`
+- **Never** add "Co-Authored-By" lines to commit messages
+- Present the commit message(s) to the user for approval before committing
+- After committing, show the result with `git log --oneline` for all new commits
