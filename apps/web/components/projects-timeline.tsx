@@ -204,7 +204,7 @@ export function ProjectsTimeline() {
                             className="h-full w-full object-contain"
                             loading={index < 3 ? "eager" : "lazy"}
                             sizes="92vw"
-                            unoptimized
+                            quality={75}
                           />
                         )}
                       </div>
@@ -251,8 +251,7 @@ export function ProjectsTimeline() {
                               className="h-full w-full object-contain"
                               loading={index < 3 ? "eager" : "lazy"}
                               sizes="(max-width: 900px) 92vw, 42vw"
-                              quality={68}
-                              unoptimized
+                              quality={75}
                             />
                           )
                         ) : (

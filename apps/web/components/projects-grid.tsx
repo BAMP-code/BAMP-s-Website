@@ -72,6 +72,7 @@ export function ProjectsGrid({ progressRef }: Props) {
       container.style.visibility = "visible";
 
       // Individual card stagger
+      let allSettled = true;
       for (let i = 0; i < cardRefs.current.length; i++) {
         const card = cardRefs.current[i];
         if (!card) continue;
@@ -80,16 +81,24 @@ export function ProjectsGrid({ progressRef }: Props) {
         const cardEnd = cardStart + 0.10;
         const t = smoothstep(cardStart, cardEnd, p);
 
+        if (t < 1) allSettled = false;
+
         const scale = 0.7 + t * 0.3;
         const opacity = t;
         card.style.transform = `scale(${scale})`;
         card.style.opacity = String(opacity);
 
-        if (p > 0.90) {
+        if (t >= 1) {
           card.style.willChange = "auto";
         } else if (p > phases.reveal[0] - 0.05) {
           card.style.willChange = "transform, opacity";
         }
+      }
+
+      // Keep running if cards are still animating or user might scroll back
+      if (allSettled && p > 0.95) {
+        // All cards fully revealed and past scroll range — stop RAF
+        return;
       }
 
       rafRef.current = requestAnimationFrame(animate);
@@ -142,7 +151,7 @@ export function ProjectsGrid({ progressRef }: Props) {
                         className="h-full w-full object-cover"
                         loading="lazy"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        unoptimized
+                        quality={75}
                       />
                     )}
                   </div>
