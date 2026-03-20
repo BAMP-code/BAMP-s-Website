@@ -20,7 +20,11 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
   useEffect(() => {
     if (open) {
       document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+        document.body.style.overflow = "";
+      };
     }
   }, [open, handleKeyDown]);
 
@@ -45,6 +49,7 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
             height="26"
             viewBox="0 -960 960 960"
             width="26"
+            fill="currentColor"
             aria-hidden="true"
           >
             <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />

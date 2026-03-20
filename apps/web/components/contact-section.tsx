@@ -3,7 +3,7 @@ const OUTLOOK_COMPOSE_URL =
 
 export function ContactSection() {
   return (
-    <section id="contact" className="scroll-mt-32 bg-black px-[clamp(16px,3.5vw,72px)] pb-20 pt-10">
+    <section id="contact" aria-label="Contact" className="scroll-mt-32 bg-black px-[clamp(16px,3.5vw,72px)] pb-20 pt-10">
       <div className="mx-auto w-full rounded-3xl border border-white/15 bg-[#09090d] p-6 sm:p-8">
         <p className="mb-2 text-xs uppercase tracking-[0.28em] text-white/45">Contact</p>
         <h2 className="text-3xl font-semibold text-white sm:text-4xl">Let&apos;s build something.</h2>

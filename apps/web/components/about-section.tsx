@@ -29,7 +29,8 @@ export function AboutSection() {
     <section
       id="about"
       ref={ref}
-      className={`relative z-10 mx-auto mt-10 w-[min(96vw,1800px)] scroll-mt-32 rounded-[34px] px-[clamp(18px,2vw,44px)] py-8 transition-all duration-700 sm:py-10 ${
+      aria-label="About Bryan"
+      className={`relative z-10 mx-auto mt-10 w-[min(96vw,1800px)] scroll-mt-32 rounded-[34px] px-[clamp(18px,2vw,44px)] py-8 transition-[transform,opacity] duration-700 sm:py-10 ${
         visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
       } about-surface animate-panel-breath`}
     >

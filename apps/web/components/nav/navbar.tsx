@@ -50,6 +50,7 @@ export function Navbar() {
               height="26"
               viewBox="0 -960 960 960"
               width="26"
+              fill="currentColor"
               aria-hidden="true"
             >
               <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z" />
