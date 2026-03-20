@@ -6,11 +6,29 @@ type OptimizedVideoProps = {
   src: string;
   poster?: string;
   alt: string;
+  fit?: "cover" | "contain";
+  unstyled?: boolean;
+  autoplay?: boolean;
+  loop?: boolean;
+  preload?: "none" | "metadata" | "auto";
 };
 
-export function OptimizedVideo({ src, poster, alt }: OptimizedVideoProps) {
+export function OptimizedVideo({
+  src,
+  poster,
+  alt,
+  fit = "contain",
+  unstyled = false,
+  autoplay = true,
+  loop = true,
+  preload = "none",
+}: OptimizedVideoProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const fitClass = fit === "cover" ? "object-cover" : "object-contain";
+  const mediaClass = unstyled
+    ? `h-full w-full ${fitClass}`
+    : `h-full w-full rounded-t-card bg-surface-alt ${fitClass}`;
 
   useEffect(() => {
     const el = containerRef.current;
@@ -34,13 +52,13 @@ export function OptimizedVideo({ src, poster, alt }: OptimizedVideoProps) {
     <div ref={containerRef} className="h-full w-full" aria-label={alt}>
       {isVisible ? (
         <video
-          autoPlay
+          autoPlay={autoplay}
           muted
-          loop
+          loop={loop}
           playsInline
-          preload="none"
+          preload={preload}
           poster={poster}
-          className="max-h-full max-w-full rounded-t-card bg-surface-alt object-contain"
+          className={mediaClass}
         >
           <source src={src} type="video/mp4" />
         </video>
@@ -49,7 +67,7 @@ export function OptimizedVideo({ src, poster, alt }: OptimizedVideoProps) {
         <img
           src={poster}
           alt={alt}
-          className="max-h-full max-w-full rounded-t-card bg-surface-alt object-contain"
+          className={mediaClass}
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-surface-alt text-muted">

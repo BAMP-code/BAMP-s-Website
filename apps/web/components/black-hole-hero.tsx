@@ -5,6 +5,8 @@ import type { CSSProperties } from "react";
 
 const INTRO_ON_FIRST_VISIT_ENABLED = false;
 const INTRO_ALWAYS_PLAY = true;
+const OUTLOOK_COMPOSE_URL =
+  "https://outlook.office.com/mail/deeplink/compose?to=pineda.bamp@gmail.com&subject=Portfolio%20Inquiry%20from%20Website";
 
 export function BlackHoleHero() {
   const INTRO_STORAGE_KEY = "bamp_intro_seen_v1";
@@ -16,6 +18,26 @@ export function BlackHoleHero() {
   const charRefs = useRef<Map<string, HTMLSpanElement>>(new Map());
   const [shouldPlayIntro, setShouldPlayIntro] = useState<boolean | null>(null);
   const [showTopBar, setShowTopBar] = useState(false);
+
+  useEffect(() => {
+    // Ensure reload always starts at the top instead of restoring the last scroll position.
+    if (typeof window === "undefined") return;
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    const navEntry = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    if (navEntry?.type === "reload") {
+      if (window.location.hash) {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -189,6 +211,7 @@ export function BlackHoleHero() {
     let horizonX = 0;
     let horizonY = 0;
     let horizonR = 0;
+    let absorbR = 0;
 
     const tick = (now: number) => {
       const dt = Math.min((now - prevTime) / 1000, 0.05);
@@ -207,7 +230,7 @@ export function BlackHoleHero() {
         const dy = horizonY - p.y;
         const dist = Math.max(0.001, Math.hypot(dx, dy));
 
-        if (dist <= horizonR + 2) {
+        if (dist <= absorbR + 2) {
           p.gone = true;
           p.el.style.opacity = "0";
           continue;
@@ -227,7 +250,7 @@ export function BlackHoleHero() {
         p.y += p.vy * dt;
         p.angle += (p.vx - p.vy) * 0.011;
 
-        const progress = Math.max(0, Math.min(1, (dist - horizonR) / (p.startDist - horizonR)));
+        const progress = Math.max(0, Math.min(1, (dist - absorbR) / (p.startDist - absorbR)));
         const scale = 0.2 + progress * 0.8;
         const blur = (1 - progress) * 1.5;
         const opacity = Math.max(0, Math.min(1, progress * 1.25));
@@ -252,6 +275,8 @@ export function BlackHoleHero() {
       horizonX = svgRect.left + svgRect.width * 0.5;
       horizonY = svgRect.top + svgRect.height * 0.5;
       horizonR = (svgRect.width * 62) / 420;
+      // Cap the absorb radius so letters don't instantly disappear on larger hero sizes.
+      absorbR = Math.max(22, Math.min(horizonR * 0.38, 72));
 
       const chars = Array.from(charRefs.current.values()).sort((a, b) => {
         const ao = Number(a.dataset.charOrder ?? "0");
@@ -287,7 +312,7 @@ export function BlackHoleHero() {
             drag: 0.965 + seed4 * 0.015,
             swirl: (seed - 0.5) * 2.2,
             // Clamp so denominator stays stable even for near-core letters.
-            startDist: Math.max(dist, horizonR + 10),
+            startDist: Math.max(dist, absorbR + 10),
             startAt: startNow + 240 + seed3 * 640,
             angle: (seed - 0.5) * 26,
             gone: false,
@@ -344,7 +369,7 @@ export function BlackHoleHero() {
           showTopBar ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
         }`}
       >
-        <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-5 py-3 text-[13px] sm:px-8">
+        <div className="mx-auto flex w-[min(96vw,1800px)] items-center justify-between px-[clamp(10px,1.4vw,24px)] py-3 text-[13px]">
           <a href="/" className="font-semibold tracking-[0.02em] text-white no-underline">
             BAMP
           </a>
@@ -356,7 +381,9 @@ export function BlackHoleHero() {
               about
             </a>
             <a
-              href="mailto:pineda.bamp@gmail.com"
+              href={OUTLOOK_COMPOSE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-[#ff4f4f] transition-colors hover:text-[#ff8b8b]"
             >
               email me
@@ -364,7 +391,7 @@ export function BlackHoleHero() {
           </nav>
         </div>
         <div className="border-t border-white/10">
-          <div className="mx-auto w-full max-w-[1200px] px-5 py-2 text-[11px] tracking-[0.08em] text-white/45 sm:px-8">
+          <div className="mx-auto w-[min(96vw,1800px)] px-[clamp(10px,1.4vw,24px)] py-2 text-[11px] tracking-[0.08em] text-white/45">
             <p>Bryan Pineda — Embedded systems and intelligent products</p>
           </div>
         </div>
@@ -399,7 +426,7 @@ export function BlackHoleHero() {
         </div>
       )}
 
-      <div className="relative z-10 w-[min(82vw,620px)]">
+      <div className="relative z-10 w-[min(88vw,980px)]">
         <svg
           viewBox="0 0 420 420"
           className="h-auto w-full"

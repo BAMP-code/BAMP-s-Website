@@ -62,6 +62,7 @@ export function Slider({ projects, label }: SliderProps) {
                 width={project.media.width}
                 height={project.media.height}
                 className="max-h-full max-w-full rounded-t-card bg-[#0a1328] object-contain"
+                unoptimized
               />
             )}
           </div>
