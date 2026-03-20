@@ -125,6 +125,29 @@ body {
   }
 }
 
+/* ---------- Shared utility classes ---------- */
+
+.section-title-gradient {
+  background: linear-gradient(135deg, #f6ea2a 0%, #00f6ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.about-surface {
+  background: linear-gradient(168deg, #0d0d14 0%, #08080c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 60px rgba(0, 246, 255, 0.04), 0 24px 50px rgba(0, 0, 0, 0.5);
+}
+
+.orbit-line {
+  position: absolute;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 246, 255, 0.12);
+  pointer-events: none;
+  animation: orbitGlow 5.2s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -3,13 +3,13 @@ import { AboutInfo } from "@/lib/types";
 export const about: AboutInfo = {
   name: "Bryan",
   headline: "BAMP",
-  bio: "Bryan is currently a Computer Science student at Stanford University, with a strong interest in the intersection of Artificial Intelligence and Electrical Engineering. He is passionate about exploring how emerging technologies can improve the lives of millions of people around the world. Outside of academics, Bryan enjoys powerlifting, playing piano, and immersing himself in video games.",
+  bio: "I'm a senior at Stanford University studying Computer Science on the Artificial Intelligence track. I build autonomous AI agents, ML pipelines, and full-stack systems — most recently architecting stateful memory and violation-detection infrastructure at Alterion. Outside of work, I enjoy powerlifting, playing piano, and immersing myself in video games.",
   portrait: {
     type: "image",
-    src: "/images/me-pic.png",
-    alt: "Bryan's portrait",
-    width: 600,
-    height: 800,
+    src: "/images/headshot.JPG",
+    alt: "Bryan Pineda headshot",
+    width: 1200,
+    height: 1600,
   },
   socials: [
     {
@@ -18,9 +18,35 @@ export const about: AboutInfo = {
       label: "Bryan's LinkedIn profile",
     },
     {
+      platform: "GitHub",
+      url: "https://github.com/BAMP-code",
+      label: "Bryan's GitHub profile",
+    },
+    {
+      platform: "Handshake",
+      url: "https://app.joinhandshake.com/profiles/5up4ru",
+      label: "Bryan's Handshake profile",
+    },
+    {
       platform: "Email",
       url: "mailto:pineda.bamp@gmail.com",
       label: "Email Bryan",
     },
   ],
+  skills: [
+    "Python",
+    "C/C++",
+    "TypeScript",
+    "PyTorch",
+    "TensorFlow",
+    "Docker",
+    "Kubernetes",
+    "LangChain",
+    "React",
+    "SQL",
+    "AWS",
+    "GCP",
+  ],
+  education: "Stanford University, B.S. Computer Science (AI Track)",
+  resumeUrl: "/resume.pdf",
 };

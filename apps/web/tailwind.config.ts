@@ -78,6 +78,10 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-3px)" },
         },
+        pulseDot: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.4" },
+        },
       },
       animation: {
         marquee: "marquee 60s linear infinite",
@@ -88,6 +92,7 @@ const config: Config = {
         "fade-in": "fadeIn 0.3s ease",
         "orbit-glow": "orbitGlow 5.2s ease-in-out infinite",
         "panel-breath": "panelBreath 5.6s ease-in-out infinite",
+        "pulse-dot": "pulseDot 2s ease-in-out infinite",
       },
     },
   },

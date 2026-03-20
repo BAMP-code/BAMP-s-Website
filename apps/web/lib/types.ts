@@ -26,6 +26,9 @@ export type AboutInfo = {
   bio: string;
   portrait: MediaAsset;
   socials: { platform: string; url: string; label: string }[];
+  skills?: string[];
+  education?: string;
+  resumeUrl?: string;
 };
 
 export type NavLink = {
