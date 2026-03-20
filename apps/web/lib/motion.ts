@@ -23,8 +23,8 @@ export const motion = {
     translateY: 5,
   },
   warp: {
-    /** Total scroll runway multiplier (5 × viewport height) */
-    runwayVh: 500,
+    /** Total scroll runway multiplier — covers intro through warp flash */
+    runwayVh: 350,
     /** Intro duration in ms before scroll takes over */
     introDuration: 6200,
     /** Star count desktop / mobile (<768px) */

@@ -156,11 +156,4 @@ body {
   .warp-canvas {
     display: none !important;
   }
-
-  .warp-projects {
-    opacity: 1 !important;
-    transform: none !important;
-    position: relative !important;
-    visibility: visible !important;
-  }
 }

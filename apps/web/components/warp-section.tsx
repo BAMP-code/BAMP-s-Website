@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { BlackHoleHero } from "@/components/black-hole-hero";
 import { StarfieldCanvas } from "@/components/starfield-canvas";
-import { ProjectsGrid } from "@/components/projects-grid";
 import { motion } from "@/lib/motion";
 
 const OUTLOOK_COMPOSE_URL =
@@ -94,9 +93,8 @@ export function WarpSection() {
 
   if (reduceMotion) {
     return (
-      <div id="projects" className="scroll-mt-32 bg-black">
+      <div className="bg-black">
         <Header showTopBar={true} />
-        <ProjectsGrid progressRef={progressRef} />
       </div>
     );
   }
@@ -104,15 +102,13 @@ export function WarpSection() {
   return (
     <div
       ref={sectionRef}
-      id="projects"
-      className="relative scroll-mt-32 bg-black"
+      className="relative bg-black"
       style={{ height: `${motion.warp.runwayVh}vh` }}
     >
       <Header showTopBar={showTopBar} />
       <div className="sticky top-0 h-screen overflow-hidden">
         <BlackHoleHero progressRef={progressRef} onIntroComplete={onIntroComplete} />
         <StarfieldCanvas progressRef={progressRef} />
-        <ProjectsGrid progressRef={progressRef} />
       </div>
     </div>
   );
@@ -121,28 +117,42 @@ export function WarpSection() {
 function Header({ showTopBar }: { showTopBar: boolean }) {
   return (
     <header
-      className={`pointer-events-auto fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-black/70 backdrop-blur-md transition-all duration-700 ${
-        showTopBar ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
+      className={`fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-black/70 backdrop-blur-md transition-all duration-700 ${
+        showTopBar ? "pointer-events-auto translate-y-0 opacity-100" : "pointer-events-none -translate-y-3 opacity-0"
       }`}
     >
       <div className="mx-auto flex w-[min(96vw,1800px)] items-center justify-between px-[clamp(10px,1.4vw,24px)] py-3 text-[13px]">
         <a href="/" className="font-semibold tracking-[0.02em] text-white no-underline">
           BAMP
         </a>
-        <nav aria-label="Primary" className="hidden items-center gap-7 text-white/75 sm:flex">
-          <a href="#projects" className="transition-colors hover:text-white">
+        <nav aria-label="Primary" className="flex items-center gap-5 text-white/75 sm:gap-7">
+          <a href="#projects" className="hidden transition-colors hover:text-white sm:block">
             projects
           </a>
-          <a href="#about" className="transition-colors hover:text-white">
+          <a href="#about" className="hidden transition-colors hover:text-white sm:block">
             about
           </a>
           <a
             href={OUTLOOK_COMPOSE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#ff4f4f] transition-colors hover:text-[#ff8b8b]"
+            className="hidden text-[#ff4f4f] transition-colors hover:text-[#ff8b8b] sm:block"
           >
             email me
+          </a>
+          <a href="#projects" className="transition-colors hover:text-white sm:hidden">
+            projects
+          </a>
+          <a href="#about" className="transition-colors hover:text-white sm:hidden">
+            about
+          </a>
+          <a
+            href={OUTLOOK_COMPOSE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#ff4f4f] transition-colors hover:text-[#ff8b8b] sm:hidden"
+          >
+            email
           </a>
         </nav>
       </div>
