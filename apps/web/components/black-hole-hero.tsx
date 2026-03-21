@@ -358,8 +358,7 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
       ref={containerRef}
       data-bh-root=""
       style={{
-        position: "absolute",
-        inset: 0,
+        gridArea: "1 / 1",
         zIndex: 10,
         display: "flex",
         alignItems: "center",
