@@ -35,6 +35,9 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
   // Determine intro state
   useEffect(() => {
     setShouldPlayIntro(INTRO_ALWAYS_PLAY);
+    // Force display:flex — ad blockers inject broad CSS rules with
+    // !important that hide this container. setProperty overrides them.
+    containerRef.current?.style.setProperty("display", "flex", "important");
   }, []);
 
   // Fire intro complete callback
