@@ -180,7 +180,7 @@ export function WarpSection() {
       style={{ height: "320vh" }}
     >
       <Header showTopBar={showTopBar} />
-      <div className="sticky top-0 grid h-screen overflow-hidden" style={{ gridTemplate: "1fr / 1fr" }}>
+      <div className="grid h-screen overflow-hidden" style={{ position: "sticky", top: 0, gridTemplate: "1fr / 1fr" }}>
         {/* Hero content — revealed as the black hole moves down */}
         <div
           ref={heroContentRef}
