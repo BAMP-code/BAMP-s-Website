@@ -34,19 +34,7 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
 
   // Determine intro state
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    if (INTRO_ALWAYS_PLAY) {
-      setShouldPlayIntro(true);
-      container.classList.remove("intro-static");
-      container.classList.add("intro-playing");
-      return;
-    }
-
-    setShouldPlayIntro(false);
-    container.classList.add("intro-static");
-    container.classList.remove("intro-playing");
+    setShouldPlayIntro(INTRO_ALWAYS_PLAY);
   }, []);
 
   // Fire intro complete callback
