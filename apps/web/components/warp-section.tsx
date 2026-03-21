@@ -180,12 +180,12 @@ export function WarpSection() {
       style={{ height: "320vh" }}
     >
       <Header showTopBar={showTopBar} />
-      <div className="sticky top-0 h-screen overflow-hidden">
+      <div className="sticky top-0 grid h-screen overflow-hidden" style={{ gridTemplate: "1fr / 1fr" }}>
         {/* Hero content — revealed as the black hole moves down */}
         <div
           ref={heroContentRef}
-          className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none"
-          style={{ opacity: 0 }}
+          className="z-20 flex flex-col items-center justify-center pointer-events-none"
+          style={{ opacity: 0, gridArea: "1 / 1" }}
         >
           <p className="text-xs uppercase tracking-[0.3em] text-accent/70 sm:text-sm">
             Bryan Pineda

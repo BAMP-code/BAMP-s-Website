@@ -215,7 +215,8 @@ export function StarfieldCanvas({ progressRef }: Props) {
   return (
     <canvas
       ref={canvasRef}
-      className="warp-canvas absolute inset-0 z-[5] h-full w-full pointer-events-none"
+      className="warp-canvas z-[5] h-full w-full pointer-events-none"
+      style={{ gridArea: "1 / 1" }}
       aria-hidden="true"
     />
   );
