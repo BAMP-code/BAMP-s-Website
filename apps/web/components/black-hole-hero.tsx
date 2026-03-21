@@ -356,7 +356,7 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 z-10 flex items-center justify-center"
+      className="absolute inset-0 z-10 !flex items-center justify-center"
     >
       {shouldPlayIntro !== false && (
         <div className="pointer-events-none absolute left-1/2 top-1/2 z-30 -translate-x-1/2 -translate-y-1/2">
