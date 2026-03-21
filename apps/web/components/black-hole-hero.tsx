@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import type { CSSProperties } from "react";
 import { motion } from "@/lib/motion";
 
-const INTRO_STORAGE_KEY = "bamp-intro-played";
+const INTRO_ALWAYS_PLAY = true;
 
 const { phases } = motion.warp;
 
@@ -32,18 +32,15 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
     return value - Math.floor(value);
   }, []);
 
-  // Determine intro state — only play once per browser (localStorage)
+  // Determine intro state
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const hasPlayed = localStorage.getItem(INTRO_STORAGE_KEY) === "1";
-
-    if (!hasPlayed) {
+    if (INTRO_ALWAYS_PLAY) {
       setShouldPlayIntro(true);
       container.classList.remove("intro-static");
       container.classList.add("intro-playing");
-      localStorage.setItem(INTRO_STORAGE_KEY, "1");
       return;
     }
 
