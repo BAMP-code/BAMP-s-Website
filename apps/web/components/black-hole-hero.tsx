@@ -35,9 +35,6 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
   // Determine intro state
   useEffect(() => {
     setShouldPlayIntro(INTRO_ALWAYS_PLAY);
-    // Force display:flex — ad blockers inject broad CSS rules with
-    // !important that hide this container. setProperty overrides them.
-    containerRef.current?.style.setProperty("display", "flex", "important");
   }, []);
 
   // Fire intro complete callback
@@ -359,7 +356,15 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 z-10 !flex items-center justify-center"
+      data-bh-root=""
+      style={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 10,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
     >
       {shouldPlayIntro !== false && (
         <div className="pointer-events-none absolute left-1/2 top-1/2 z-30 -translate-x-1/2 -translate-y-1/2">
