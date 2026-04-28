@@ -14,25 +14,11 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
   const blurRef = useRef<SVGFEGaussianBlurElement>(null);
   const glowGradientRef = useRef<SVGRadialGradientElement>(null);
   const rafRef = useRef(0);
-  const inViewportRef = useRef(false);
 
-  // Track viewport visibility for RAF gating
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        inViewportRef.current = entry.isIntersecting;
-      },
-      { threshold: 0.05, rootMargin: "0px 0px 24% 0px" },
-    );
-
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
-
-  // Gentle idle animation for the turbulence filter
+  // Mouse-reactive turbulence filter, gated by viewport visibility.
+  // The RAF is started by IntersectionObserver when the section enters
+  // view, and fully stopped (not just early-returned) when it leaves —
+  // SVG filters are expensive enough that skipped work still costs frames.
   useEffect(() => {
     const section = sectionRef.current;
     const turbulence = turbulenceRef.current;
@@ -43,13 +29,13 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    let running = true;
     let targetInfluence = 0;
     let influence = 0;
     let targetX = 0.5;
     let targetY = 0.5;
     let x = 0.5;
     let y = 0.5;
+    let raf = 0;
 
     const onMove = (event: MouseEvent) => {
       const rect = section.getBoundingClientRect();
@@ -77,12 +63,6 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
     section.addEventListener("mouseleave", onLeave);
 
     const tick = (time: number) => {
-      if (!running) return;
-      rafRef.current = requestAnimationFrame(tick);
-
-      // Skip expensive SVG filter updates when not in viewport
-      if (!inViewportRef.current) return;
-
       influence += (targetInfluence - influence) * 0.08;
       x += (targetX - x) * 0.1;
       y += (targetY - y) * 0.1;
@@ -101,17 +81,40 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
       const cy2 = 50 + (y - 0.5) * 18 * influence;
       glowGradient.setAttribute("cx", `${cx2.toFixed(2)}%`);
       glowGradient.setAttribute("cy", `${cy2.toFixed(2)}%`);
+
+      raf = requestAnimationFrame(tick);
+      rafRef.current = raf;
     };
 
-    rafRef.current = requestAnimationFrame(tick);
+    const start = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(tick);
+      rafRef.current = raf;
+    };
+
+    const stop = () => {
+      if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+        rafRef.current = 0;
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) start();
+        else stop();
+      },
+      { threshold: 0.05, rootMargin: "0px 0px 24% 0px" },
+    );
+    observer.observe(section);
 
     return () => {
-      running = false;
-      cancelAnimationFrame(rafRef.current);
+      observer.disconnect();
+      stop();
       section.removeEventListener("mousemove", onMove);
       section.removeEventListener("mouseleave", onLeave);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
