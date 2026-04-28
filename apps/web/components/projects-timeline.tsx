@@ -238,10 +238,6 @@ export function ProjectsTimeline() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
-  const translateXRef = useRef(0);
-  const maxTranslateRef = useRef(0);
-  const pendingDeltaRef = useRef(0);
-  const rafIdRef = useRef(0);
 
   const [isCompact, setIsCompact] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -263,82 +259,38 @@ export function ProjectsTimeline() {
     return () => query.removeEventListener("change", onMotionChange);
   }, []);
 
-  // Calculate max translate on mount/resize
   useEffect(() => {
     const recalc = () => {
-      const track = trackRef.current;
-      if (!track) return;
-
-      const compact = window.innerWidth < MOBILE_BREAKPOINT;
-      setIsCompact(compact);
-
-      if (compact || reduceMotion) {
-        maxTranslateRef.current = 0;
-        return;
-      }
-
-      maxTranslateRef.current = Math.max(0, track.scrollWidth - window.innerWidth + 160);
+      setIsCompact(window.innerWidth < MOBILE_BREAKPOINT);
     };
-
     recalc();
     window.addEventListener("resize", recalc);
     return () => window.removeEventListener("resize", recalc);
-  }, [reduceMotion]);
+  }, []);
 
-  // Wheel-to-scroll: RAF-batched for smooth 60fps updates
+  // Update progress bar from native horizontal scroll position.
+  // No wheel hijacking — users get OS-native horizontal scroll
+  // (trackpad swipe, shift+wheel, touch swipe, scrollbar drag).
   useEffect(() => {
     if (isCompact || reduceMotion) return;
 
     const scrollArea = scrollAreaRef.current;
-    const track = trackRef.current;
-    if (!scrollArea || !track) return;
+    if (!scrollArea) return;
 
-    let rafScheduled = false;
-
-    const applyScroll = () => {
-      rafScheduled = false;
-      const max = maxTranslateRef.current;
-      if (max <= 0) return;
-
-      const next = Math.max(0, Math.min(max, translateXRef.current + pendingDeltaRef.current));
-      pendingDeltaRef.current = 0;
-      translateXRef.current = next;
-      track.style.transform = `translate3d(${-next}px, 0, 0)`;
-
-      // Update progress bar via DOM ref — no React re-render
-      if (progressBarRef.current) {
-        const progress = max > 0 ? next / max : 0;
-        const pct = Math.max(8, progress * 100);
-        progressBarRef.current.style.width = `${pct}%`;
-      }
+    const updateBar = () => {
+      const bar = progressBarRef.current;
+      if (!bar) return;
+      const max = scrollArea.scrollWidth - scrollArea.clientWidth;
+      const progress = max > 0 ? scrollArea.scrollLeft / max : 0;
+      bar.style.width = `${Math.max(8, progress * 100)}%`;
     };
 
-    const onWheel = (e: WheelEvent) => {
-      const max = maxTranslateRef.current;
-      if (max <= 0) return;
-
-      const delta = e.deltaY;
-      const prev = translateXRef.current + pendingDeltaRef.current;
-
-      // At the edges, let the page scroll through
-      if (delta > 0 && prev >= max) return;
-      if (delta < 0 && prev <= 0) return;
-
-      e.preventDefault();
-
-      // Accumulate delta — the RAF callback will apply it once per frame
-      pendingDeltaRef.current += delta;
-
-      if (!rafScheduled) {
-        rafScheduled = true;
-        rafIdRef.current = requestAnimationFrame(applyScroll);
-      }
-    };
-
-    scrollArea.addEventListener("wheel", onWheel, { passive: false });
+    updateBar();
+    scrollArea.addEventListener("scroll", updateBar, { passive: true });
+    window.addEventListener("resize", updateBar);
     return () => {
-      scrollArea.removeEventListener("wheel", onWheel);
-      cancelAnimationFrame(rafIdRef.current);
+      scrollArea.removeEventListener("scroll", updateBar);
+      window.removeEventListener("resize", updateBar);
     };
   }, [isCompact, reduceMotion]);
 
@@ -363,7 +315,7 @@ export function ProjectsTimeline() {
         <p className="mt-3 w-[min(92vw,980px)] text-sm leading-relaxed text-muted sm:text-base">
           {isCompact || reduceMotion
             ? "Browse through my projects below."
-            : "Hover over the timeline and scroll to explore projects."}
+            : "Swipe or shift-scroll to explore the timeline."}
         </p>
       </div>
 
@@ -416,12 +368,11 @@ export function ProjectsTimeline() {
         <>
           <div
             ref={scrollAreaRef}
-            className="relative cursor-ew-resize overflow-hidden py-10"
+            className="relative overflow-x-auto overflow-y-hidden snap-x snap-mandatory py-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
             <div
               ref={trackRef}
               className="flex items-center gap-12 pb-2 pr-[20vw]"
-              style={{ transform: "translate3d(0px, 0, 0)" }}
             >
               {timelineProjects.map((project, index) => {
                 const date = PROJECT_DATES[project.id] ?? "TBD";
@@ -432,7 +383,7 @@ export function ProjectsTimeline() {
                 return (
                 <div
                   key={project.id}
-                  className={`${widthClass} shrink-0 cursor-pointer`}
+                  className={`${widthClass} shrink-0 cursor-pointer snap-start`}
                   style={{ transform: `translateY(${yOffset}px)` }}
                   onClick={() => toggleExpand(project.id)}
                   role="button"
