@@ -8,3 +8,15 @@ dist/
 .env.*.local
 __pycache__/
 *.pyc
+
+# macOS
+.DS_Store
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# iCloud / cloud-sync duplicate filename artifacts
+* 2.tsx
+* 2.ts
+* 2.pdf
+* 2/
