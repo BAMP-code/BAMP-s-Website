@@ -58,44 +58,6 @@ export function WarpSection() {
     setShowTopBar(true);
   }, []);
 
-  // Dampen scroll speed while the warp animation is active so the user
-  // can't rush through it. We intercept wheel events, cancel the native
-  // scroll, and re-apply at 40% speed.
-  useEffect(() => {
-    if (reduceMotion) return;
-
-    const section = sectionRef.current;
-    if (!section) return;
-
-    const onWheel = (e: WheelEvent) => {
-      // Only dampen while the section is on-screen and animation is playing
-      const p = progressRef.current;
-      if (p >= 1) return;
-      if (!introCompleteRef.current) return;
-
-      const rect = section.getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-
-      e.preventDefault();
-      // Progressive damping: light at the start, heavier during the action.
-      // 0–20% progress → 0.75x (barely noticeable)
-      // 20–80% progress → ramps down to 0.35x (cinematic slow-down)
-      // 80–100% progress → eases back to 0.65x (let the user finish)
-      let factor: number;
-      if (p < 0.2) {
-        factor = 0.75;
-      } else if (p < 0.8) {
-        factor = 0.75 - (p - 0.2) * (0.4 / 0.6); // 0.75 → 0.35
-      } else {
-        factor = 0.35 + (p - 0.8) * (0.3 / 0.2); // 0.35 → 0.65
-      }
-      window.scrollBy(0, e.deltaY * factor);
-    };
-
-    section.addEventListener("wheel", onWheel, { passive: false });
-    return () => section.removeEventListener("wheel", onWheel);
-  }, [reduceMotion]);
-
   // Scroll-driven progress + hero content reveal
   useEffect(() => {
     if (reduceMotion) {
@@ -131,8 +93,6 @@ export function WarpSection() {
         maxProgressRef.current = 1;
       }
 
-      // Progress directly tracks scroll — no lerp.
-      // The wheel damping above ensures the user can't rush the animation.
       progressRef.current = maxProgressRef.current;
 
       // Reveal hero content as the black hole fades away
