@@ -129,7 +129,7 @@ function VideoModal({ src, alt, onClose }: { src: string; alt: string; onClose: 
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
           className="h-auto max-h-[72vh] w-full"
           aria-label={alt}
           onClick={togglePlay}
