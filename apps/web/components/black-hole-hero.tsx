@@ -67,6 +67,13 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
     const glowGradient = glowGradientRef.current;
     if (!container || !displacement || !glowGradient) return;
 
+    // Honor reduce-motion / reduce-data: keep scroll-driven transforms
+    // (they're tied to UX, not decoration) but skip the mouse-reactive
+    // filter mutations so we don't spin the SVG filter pipeline.
+    const skipFilterFx =
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      window.matchMedia("(prefers-reduced-data: reduce)").matches;
+
     let rafId = 0;
     let targetInfluence = 0;
     let influence = 0;
@@ -97,8 +104,10 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
       targetY = 0.5;
     };
 
-    container.addEventListener("mousemove", onMove);
-    container.addEventListener("mouseleave", onLeave);
+    if (!skipFilterFx) {
+      container.addEventListener("mousemove", onMove);
+      container.addEventListener("mouseleave", onLeave);
+    }
 
     const tick = () => {
       const p = progressRef.current ?? 0;
@@ -117,8 +126,9 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
         container.style.transform = `translateY(0px) scale(${Math.max(0.08, bhScale).toFixed(3)})`;
       }
 
-      // Skip mouse interactivity once BH has moved significantly
-      if (p > 0.40) {
+      // Skip mouse interactivity once BH has moved significantly,
+      // or always under reduce-motion / reduce-data.
+      if (skipFilterFx || p > 0.40) {
         rafId = window.requestAnimationFrame(tick);
         return;
       }
@@ -166,8 +176,10 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
     return () => {
       observer.disconnect();
       stop();
-      container.removeEventListener("mousemove", onMove);
-      container.removeEventListener("mouseleave", onLeave);
+      if (!skipFilterFx) {
+        container.removeEventListener("mousemove", onMove);
+        container.removeEventListener("mouseleave", onLeave);
+      }
     };
     // progressRef is a stable ref — not a reactive value.
     // eslint-disable-next-line react-hooks/exhaustive-deps

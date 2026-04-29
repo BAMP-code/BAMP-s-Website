@@ -23,7 +23,12 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
     const glowGradient = glowGradientRef.current;
     if (!section || !displacement || !glowGradient) return;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      window.matchMedia("(prefers-reduced-data: reduce)").matches
+    ) {
+      return;
+    }
 
     let targetInfluence = 0;
     let influence = 0;
