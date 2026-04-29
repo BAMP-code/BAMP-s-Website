@@ -20,9 +20,7 @@ type Props = {
 
 export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const turbulenceRef = useRef<SVGFETurbulenceElement>(null);
   const displacementRef = useRef<SVGFEDisplacementMapElement>(null);
-  const blurRef = useRef<SVGFEGaussianBlurElement>(null);
   const glowGradientRef = useRef<SVGRadialGradientElement>(null);
   const charRefs = useRef<Map<string, HTMLSpanElement>>(new Map());
   const [shouldPlayIntro, setShouldPlayIntro] = useState<boolean | null>(null);
@@ -59,17 +57,24 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
     };
   }, [shouldPlayIntro, onIntroComplete]);
 
-  // Mouse-reactive SVG filter + scroll-reactive transforms
+  // Mouse-reactive SVG filter + scroll-reactive transforms.
+  // RAF is gated by IntersectionObserver — SVG filters are expensive
+  // enough that even a no-op tick costs frames, so we fully stop the
+  // loop when the hero leaves the viewport rather than early-returning.
   useEffect(() => {
     const container = containerRef.current;
-    const turbulence = turbulenceRef.current;
     const displacement = displacementRef.current;
-    const blur = blurRef.current;
     const glowGradient = glowGradientRef.current;
-    if (!container || !turbulence || !displacement || !blur || !glowGradient) return;
+    if (!container || !displacement || !glowGradient) return;
+
+    // Honor reduce-motion / reduce-data: keep scroll-driven transforms
+    // (they're tied to UX, not decoration) but skip the mouse-reactive
+    // filter mutations so we don't spin the SVG filter pipeline.
+    const skipFilterFx =
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      window.matchMedia("(prefers-reduced-data: reduce)").matches;
 
     let rafId = 0;
-    let running = true;
     let targetInfluence = 0;
     let influence = 0;
     let targetX = 0.5;
@@ -99,16 +104,13 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
       targetY = 0.5;
     };
 
-    container.addEventListener("mousemove", onMove);
-    container.addEventListener("mouseleave", onLeave);
+    if (!skipFilterFx) {
+      container.addEventListener("mousemove", onMove);
+      container.addEventListener("mouseleave", onLeave);
+    }
 
-    const tick = (time: number) => {
-      if (!running) return;
-
+    const tick = () => {
       const p = progressRef.current ?? 0;
-      if (p >= 1) {
-        return;
-      }
 
       // Black hole should feel like a distant time-jump object:
       // it shrinks and fades away instead of translating downward.
@@ -124,26 +126,23 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
         container.style.transform = `translateY(0px) scale(${Math.max(0.08, bhScale).toFixed(3)})`;
       }
 
-      // Skip mouse interactivity once BH has moved significantly
-      if (p > 0.40) {
+      // Skip mouse interactivity once BH has moved significantly,
+      // or always under reduce-motion / reduce-data.
+      if (skipFilterFx || p > 0.40) {
         rafId = window.requestAnimationFrame(tick);
         return;
       }
 
-      // Smooth mouse response
+      // Smooth mouse response. Only feDisplacementMap.scale is animated;
+      // feTurbulence noise + feGaussianBlur stdDeviation are kept static
+      // because regenerating noise / re-running the blur shader every
+      // frame is the expensive part of this filter chain.
       influence += (targetInfluence - influence) * 0.08;
       x += (targetX - x) * 0.1;
       y += (targetY - y) * 0.1;
 
-      const tx = time * 0.0008;
-      const freqX = 0.011 + Math.sin(tx) * 0.0015 + influence * 0.006;
-      const freqY = 0.018 + Math.cos(tx * 1.2) * 0.0018 + influence * 0.008;
       const scale = 10 + influence * 26;
-      const blurValue = 2 + influence * 1.8;
-
-      turbulence.setAttribute("baseFrequency", `${freqX.toFixed(4)} ${freqY.toFixed(4)}`);
       displacement.setAttribute("scale", scale.toFixed(2));
-      blur.setAttribute("stdDeviation", blurValue.toFixed(2));
 
       const cx2 = 50 + (x - 0.5) * 22 * influence;
       const cy2 = 50 + (y - 0.5) * 22 * influence;
@@ -153,13 +152,34 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
       rafId = window.requestAnimationFrame(tick);
     };
 
-    rafId = window.requestAnimationFrame(tick);
+    const start = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(tick);
+    };
+
+    const stop = () => {
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) start();
+        else stop();
+      },
+      { threshold: 0, rootMargin: "0px 0px 24% 0px" },
+    );
+    observer.observe(container);
 
     return () => {
-      running = false;
-      container.removeEventListener("mousemove", onMove);
-      container.removeEventListener("mouseleave", onLeave);
-      window.cancelAnimationFrame(rafId);
+      observer.disconnect();
+      stop();
+      if (!skipFilterFx) {
+        container.removeEventListener("mousemove", onMove);
+        container.removeEventListener("mouseleave", onLeave);
+      }
     };
     // progressRef is a stable ref — not a reactive value.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -421,7 +441,6 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
 
             <filter id="gasDistort" x="-50%" y="-50%" width="200%" height="200%">
               <feTurbulence
-                ref={turbulenceRef}
                 type="fractalNoise"
                 baseFrequency="0.011 0.018"
                 numOctaves="2"
@@ -438,7 +457,6 @@ export function BlackHoleHero({ progressRef, onIntroComplete }: Props) {
                 result="distorted"
               />
               <feGaussianBlur
-                ref={blurRef}
                 in="distorted"
                 stdDeviation="2"
                 result="soft"

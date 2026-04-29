@@ -32,7 +32,7 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-manrope)", "Inter", "Arial", "sans-serif"],
         serif: ["var(--font-manrope)", "Inter", "Arial", "sans-serif"],
-        mono: ["var(--font-dm-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
+        mono: ["ui-monospace", "SFMono-Regular", "monospace"],
       },
       borderRadius: {
         card: "20px",

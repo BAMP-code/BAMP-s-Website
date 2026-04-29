@@ -9,47 +9,34 @@ type BlackHoleFooterProps = {
 
 export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
   const sectionRef = useRef<HTMLElement>(null);
-  const turbulenceRef = useRef<SVGFETurbulenceElement>(null);
   const displacementRef = useRef<SVGFEDisplacementMapElement>(null);
-  const blurRef = useRef<SVGFEGaussianBlurElement>(null);
   const glowGradientRef = useRef<SVGRadialGradientElement>(null);
   const rafRef = useRef(0);
-  const inViewportRef = useRef(false);
 
-  // Track viewport visibility for RAF gating
+  // Mouse-reactive turbulence filter, gated by viewport visibility.
+  // The RAF is started by IntersectionObserver when the section enters
+  // view, and fully stopped (not just early-returned) when it leaves —
+  // SVG filters are expensive enough that skipped work still costs frames.
   useEffect(() => {
     const section = sectionRef.current;
-    if (!section) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        inViewportRef.current = entry.isIntersecting;
-      },
-      { threshold: 0.05, rootMargin: "0px 0px 24% 0px" },
-    );
-
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
-
-  // Gentle idle animation for the turbulence filter
-  useEffect(() => {
-    const section = sectionRef.current;
-    const turbulence = turbulenceRef.current;
     const displacement = displacementRef.current;
-    const blur = blurRef.current;
     const glowGradient = glowGradientRef.current;
-    if (!section || !turbulence || !displacement || !blur || !glowGradient) return;
+    if (!section || !displacement || !glowGradient) return;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      window.matchMedia("(prefers-reduced-data: reduce)").matches
+    ) {
+      return;
+    }
 
-    let running = true;
     let targetInfluence = 0;
     let influence = 0;
     let targetX = 0.5;
     let targetY = 0.5;
     let x = 0.5;
     let y = 0.5;
+    let raf = 0;
 
     const onMove = (event: MouseEvent) => {
       const rect = section.getBoundingClientRect();
@@ -76,42 +63,56 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
     section.addEventListener("mousemove", onMove);
     section.addEventListener("mouseleave", onLeave);
 
-    const tick = (time: number) => {
-      if (!running) return;
-      rafRef.current = requestAnimationFrame(tick);
-
-      // Skip expensive SVG filter updates when not in viewport
-      if (!inViewportRef.current) return;
-
+    // Only feDisplacementMap.scale is animated; feTurbulence noise and
+    // feGaussianBlur stdDeviation are kept static because regenerating
+    // noise / re-running the blur shader every frame dominates the cost
+    // of this filter chain.
+    const tick = () => {
       influence += (targetInfluence - influence) * 0.08;
       x += (targetX - x) * 0.1;
       y += (targetY - y) * 0.1;
 
-      const tx = time * 0.00045;
-      const freqX = 0.011 + Math.sin(tx) * 0.0012 + influence * 0.0045;
-      const freqY = 0.018 + Math.cos(tx * 1.2) * 0.0014 + influence * 0.006;
       const distScale = 10 + influence * 18;
-      const blurValue = 2 + influence * 1.4;
-
-      turbulence.setAttribute("baseFrequency", `${freqX.toFixed(4)} ${freqY.toFixed(4)}`);
       displacement.setAttribute("scale", distScale.toFixed(2));
-      blur.setAttribute("stdDeviation", blurValue.toFixed(2));
 
       const cx2 = 50 + (x - 0.5) * 18 * influence;
       const cy2 = 50 + (y - 0.5) * 18 * influence;
       glowGradient.setAttribute("cx", `${cx2.toFixed(2)}%`);
       glowGradient.setAttribute("cy", `${cy2.toFixed(2)}%`);
+
+      raf = requestAnimationFrame(tick);
+      rafRef.current = raf;
     };
 
-    rafRef.current = requestAnimationFrame(tick);
+    const start = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(tick);
+      rafRef.current = raf;
+    };
+
+    const stop = () => {
+      if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+        rafRef.current = 0;
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) start();
+        else stop();
+      },
+      { threshold: 0.05, rootMargin: "0px 0px 24% 0px" },
+    );
+    observer.observe(section);
 
     return () => {
-      running = false;
-      cancelAnimationFrame(rafRef.current);
+      observer.disconnect();
+      stop();
       section.removeEventListener("mousemove", onMove);
       section.removeEventListener("mouseleave", onLeave);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -156,7 +157,6 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
 
               <filter id="footerGasDistort" x="-50%" y="-50%" width="200%" height="200%">
                 <feTurbulence
-                  ref={turbulenceRef}
                   type="fractalNoise"
                   baseFrequency="0.011 0.018"
                   numOctaves="2"
@@ -173,7 +173,6 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
                   result="distorted"
                 />
                 <feGaussianBlur
-                  ref={blurRef}
                   in="distorted"
                   stdDeviation="2"
                   result="soft"
