@@ -9,9 +9,7 @@ type BlackHoleFooterProps = {
 
 export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
   const sectionRef = useRef<HTMLElement>(null);
-  const turbulenceRef = useRef<SVGFETurbulenceElement>(null);
   const displacementRef = useRef<SVGFEDisplacementMapElement>(null);
-  const blurRef = useRef<SVGFEGaussianBlurElement>(null);
   const glowGradientRef = useRef<SVGRadialGradientElement>(null);
   const rafRef = useRef(0);
 
@@ -21,11 +19,9 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
   // SVG filters are expensive enough that skipped work still costs frames.
   useEffect(() => {
     const section = sectionRef.current;
-    const turbulence = turbulenceRef.current;
     const displacement = displacementRef.current;
-    const blur = blurRef.current;
     const glowGradient = glowGradientRef.current;
-    if (!section || !turbulence || !displacement || !blur || !glowGradient) return;
+    if (!section || !displacement || !glowGradient) return;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -62,20 +58,17 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
     section.addEventListener("mousemove", onMove);
     section.addEventListener("mouseleave", onLeave);
 
-    const tick = (time: number) => {
+    // Only feDisplacementMap.scale is animated; feTurbulence noise and
+    // feGaussianBlur stdDeviation are kept static because regenerating
+    // noise / re-running the blur shader every frame dominates the cost
+    // of this filter chain.
+    const tick = () => {
       influence += (targetInfluence - influence) * 0.08;
       x += (targetX - x) * 0.1;
       y += (targetY - y) * 0.1;
 
-      const tx = time * 0.00045;
-      const freqX = 0.011 + Math.sin(tx) * 0.0012 + influence * 0.0045;
-      const freqY = 0.018 + Math.cos(tx * 1.2) * 0.0014 + influence * 0.006;
       const distScale = 10 + influence * 18;
-      const blurValue = 2 + influence * 1.4;
-
-      turbulence.setAttribute("baseFrequency", `${freqX.toFixed(4)} ${freqY.toFixed(4)}`);
       displacement.setAttribute("scale", distScale.toFixed(2));
-      blur.setAttribute("stdDeviation", blurValue.toFixed(2));
 
       const cx2 = 50 + (x - 0.5) * 18 * influence;
       const cy2 = 50 + (y - 0.5) * 18 * influence;
@@ -159,7 +152,6 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
 
               <filter id="footerGasDistort" x="-50%" y="-50%" width="200%" height="200%">
                 <feTurbulence
-                  ref={turbulenceRef}
                   type="fractalNoise"
                   baseFrequency="0.011 0.018"
                   numOctaves="2"
@@ -176,7 +168,6 @@ export function BlackHoleFooter({ overlay }: BlackHoleFooterProps) {
                   result="distorted"
                 />
                 <feGaussianBlur
-                  ref={blurRef}
                   in="distorted"
                   stdDeviation="2"
                   result="soft"
