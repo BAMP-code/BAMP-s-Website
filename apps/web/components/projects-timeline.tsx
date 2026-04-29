@@ -351,8 +351,7 @@ export function ProjectsTimeline() {
                         width={project.media.width}
                         height={project.media.height}
                         className="h-full w-full object-contain"
-                        loading={index < 3 ? "eager" : "lazy"}
-                        priority={index < 2}
+                        loading="lazy"
                         sizes="92vw"
                         quality={75}
                       />
@@ -407,8 +406,7 @@ export function ProjectsTimeline() {
                         width={project.media.width}
                         height={project.media.height}
                         className="h-full w-full object-contain"
-                        loading={index < 3 ? "eager" : "lazy"}
-                        priority={index < 2}
+                        loading="lazy"
                         sizes="(max-width: 900px) 92vw, 42vw"
                         quality={75}
                       />
