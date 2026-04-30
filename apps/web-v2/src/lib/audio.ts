@@ -80,7 +80,14 @@ function startRain() {
 }
 
 function playThunder() {
-  if (!ctx || muted) return;
+  if (!ctx) return;
+  // Always emit the visual lightning event — the flash reads as
+  // "weather happening" even when audio is muted. Audio path is
+  // skipped when muted.
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("thunder:flash"));
+  }
+  if (muted) return;
   const c = ctx;
   const buffer = generateNoiseBuffer(c, 3.2);
   const source = c.createBufferSource();

@@ -6,6 +6,7 @@ import { CameraRig } from "./CameraRig";
 import { Blip } from "./Blip";
 import { Buildings } from "./Buildings";
 import { Rain } from "./Rain";
+import { Lightning } from "./Lightning";
 
 // Cinematic scroll-descent scene. Mounted via client:only="react" so
 // none of this code ships with the initial document. Phase 1
@@ -56,6 +57,7 @@ export function CityScene() {
         />
 
         <CameraRig />
+        <Lightning />
         <Blip />
         <Buildings />
         <Rain />
