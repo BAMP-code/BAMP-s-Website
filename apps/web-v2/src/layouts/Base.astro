@@ -28,5 +28,9 @@ const {
   </head>
   <body class="min-h-screen bg-surface text-primary">
     <slot />
+    <script>
+      import { initScroll } from "@/lib/scroll";
+      initScroll();
+    </script>
   </body>
 </html>
