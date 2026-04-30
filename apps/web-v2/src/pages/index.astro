@@ -3,6 +3,7 @@ import Base from "@/layouts/Base.astro";
 import { CityScene } from "@/components/scene";
 import { projects } from "@/content/projects";
 import { about } from "@/content/about";
+import { blipMessages } from "@/content/blip";
 
 const categoryLabel: Record<string, string> = {
   cs: "Computer Science",
@@ -12,13 +13,42 @@ const categoryLabel: Record<string, string> = {
 ---
 
 <Base>
-  <!-- Sticky 3D scene layer + 1500vh scroll runway. Camera Y descends
-       through the runway via @/lib/scroll → CameraRig. -->
-  <div class="relative h-[1500vh]">
+  <!-- Desktop (≥768px): sticky 3D scene + 1500vh scroll runway. Camera
+       descends via @/lib/scroll → CameraRig. The Canvas only loads on
+       desktop (client:media), so phones never download the 3D bundle. -->
+  <div class="relative hidden md:block md:h-[1500vh]">
     <div class="sticky top-0 left-0 z-0 h-screen w-screen">
-      <CityScene client:only="react" />
+      <CityScene client:media="(min-width: 768px)" />
     </div>
   </div>
+
+  <!-- Mobile (<768px): static cyberpunk hero. No 3D, no scroll trap. -->
+  <header
+    class="relative isolate flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center md:hidden"
+  >
+    <div class="cyberpunk-grid pointer-events-none absolute inset-0 -z-10"></div>
+    <p class="text-xs uppercase tracking-[0.4em] text-accent">
+      bamp.codes
+    </p>
+    <h1 class="mt-3 text-7xl font-extrabold tracking-tight text-card-title cyberpunk-glow">
+      {about.headline}
+    </h1>
+    <p
+      class="mobile-blip mt-6 font-mono text-2xl text-accent"
+      data-blip-cycle={JSON.stringify(blipMessages)}
+    >
+      {blipMessages[0]}
+    </p>
+    <p class="mt-4 max-w-md text-sm leading-relaxed text-muted">
+      Open on a larger screen for the full descent.
+    </p>
+    <a
+      href="#projects"
+      class="mt-10 rounded-pill border border-accent/40 px-5 py-2 text-xs uppercase tracking-[0.32em] text-accent/80 transition-colors hover:border-accent hover:text-accent"
+    >
+      ↓ Projects
+    </a>
+  </header>
 
   <main class="relative z-10 mx-auto max-w-3xl px-6 py-16">
     <header class="mb-12 border-b border-border pb-8">
@@ -98,8 +128,29 @@ const categoryLabel: Record<string, string> = {
     </section>
 
     <footer class="border-t border-border pt-6 text-xs text-muted">
-      Placeholder render. The cyberpunk scene + scroll bind land in
-      Merges 3 and 4 (see <code class="text-accent">docs/REFACTOR_VISION.md</code>).
+      bamp.codes — Bryan Pineda · Stanford CS
     </footer>
   </main>
+
+  <script>
+    // Cycle the mobile-only Blip wordmark through Bryan's messages.
+    // Reads the list from the data attribute emitted in the HTML so
+    // we don't have to import the content module client-side.
+    const blip = document.querySelector<HTMLElement>(".mobile-blip");
+    if (blip) {
+      const raw = blip.getAttribute("data-blip-cycle");
+      const messages: string[] = raw ? JSON.parse(raw) : [];
+      if (messages.length > 1) {
+        let i = 0;
+        setInterval(() => {
+          blip.style.opacity = "0.25";
+          window.setTimeout(() => {
+            i = (i + 1) % messages.length;
+            blip.textContent = messages[i] ?? "";
+            blip.style.opacity = "1";
+          }, 200);
+        }, 3000);
+      }
+    }
+  </script>
 </Base>
