@@ -12,10 +12,12 @@ const categoryLabel: Record<string, string> = {
 ---
 
 <Base>
-  <!-- Sticky 3D scene layer. Empty for now; geometry + scroll camera
-       land in Merge 4. -->
-  <div class="sticky top-0 z-0 h-screen w-screen">
-    <CityScene client:only="react" />
+  <!-- Sticky 3D scene layer + 1500vh scroll runway. Camera Y descends
+       through the runway via @/lib/scroll → CameraRig. -->
+  <div class="relative h-[1500vh]">
+    <div class="sticky top-0 left-0 z-0 h-screen w-screen">
+      <CityScene client:only="react" />
+    </div>
   </div>
 
   <main class="relative z-10 mx-auto max-w-3xl px-6 py-16">
