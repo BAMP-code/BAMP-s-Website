@@ -14,6 +14,8 @@ type Props = {
   screenWidth: number;
   screenHeight: number;
   screenY: number;
+  /** Category accent color (cyan/amber/magenta) used for the title strip. */
+  accent: string;
 };
 
 // One building = one project. Tall rectangular block; the +z face
@@ -33,6 +35,7 @@ export function ProjectBuilding({
   screenWidth,
   screenHeight,
   screenY,
+  accent,
 }: Props) {
   const depth = width * 0.85;
   const screenZ = depth / 2 + 0.005;
@@ -78,14 +81,15 @@ export function ProjectBuilding({
         )}
       </Suspense>
 
-      {/* Project title strip below the screen. */}
+      {/* Project title strip below the screen. Color matches the
+          project's category for at-a-glance wayfinding. */}
       <Text
         position={[0, titleY, screenZ + 0.008]}
         fontSize={Math.min(0.42, screenWidth * 0.06)}
-        color="#00f6ff"
-        outlineColor="#00f6ff"
+        color={accent}
+        outlineColor={accent}
         outlineWidth={0.005}
-        outlineOpacity={0.5}
+        outlineOpacity={0.55}
         maxWidth={screenWidth}
         textAlign="center"
         anchorX="center"
