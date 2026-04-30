@@ -1,5 +1,6 @@
 ---
 import Base from "@/layouts/Base.astro";
+import { CityScene } from "@/components/scene";
 import { projects } from "@/content/projects";
 import { about } from "@/content/about";
 
@@ -11,7 +12,13 @@ const categoryLabel: Record<string, string> = {
 ---
 
 <Base>
-  <main class="mx-auto max-w-3xl px-6 py-16">
+  <!-- Sticky 3D scene layer. Empty for now; geometry + scroll camera
+       land in Merge 4. -->
+  <div class="sticky top-0 z-0 h-screen w-screen">
+    <CityScene client:only="react" />
+  </div>
+
+  <main class="relative z-10 mx-auto max-w-3xl px-6 py-16">
     <header class="mb-12 border-b border-border pb-8">
       <p class="text-xs uppercase tracking-[0.32em] text-accent">
         bamp.codes v2 — content port
