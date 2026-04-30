@@ -1,5 +1,6 @@
 ---
 import "@/styles/global.css";
+import AudioToggle from "@/components/ui/AudioToggle.astro";
 
 interface Props {
   title?: string;
@@ -28,6 +29,7 @@ const {
   </head>
   <body class="min-h-screen bg-surface text-primary">
     <slot />
+    <AudioToggle />
     <script>
       import { initScroll } from "@/lib/scroll";
       initScroll();
