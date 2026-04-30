@@ -4,6 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import type { ShaderMaterial, Texture } from "three";
 import type { Project } from "@/lib/types";
 import { screenVertexShader, screenFragmentShader } from "./screen-shader";
+import { FacadeMaterial } from "./FacadeMaterial";
 
 type Props = {
   project: Project;
@@ -40,16 +41,10 @@ export function ProjectBuilding({
 
   return (
     <group position={position}>
-      {/* Building shell. */}
+      {/* Building shell — procedural facade with emissive window grid. */}
       <mesh position={[0, height / 2, 0]}>
         <boxGeometry args={[width, height, depth]} />
-        <meshStandardMaterial
-          color="#0a0a14"
-          roughness={0.78}
-          metalness={0.32}
-          emissive="#070914"
-          emissiveIntensity={0.15}
-        />
+        <FacadeMaterial />
       </mesh>
 
       {/* Screen frame — slightly recessed dark panel. */}

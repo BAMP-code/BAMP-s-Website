@@ -4,6 +4,7 @@ import type { InstancedMesh } from "three";
 import { projects } from "@/content/projects";
 import type { Project } from "@/lib/types";
 import { ProjectBuilding } from "./ProjectBuilding";
+import { FacadeMaterial } from "./FacadeMaterial";
 
 // Project buildings are MASSIVE Night-City towers. The screen on
 // each is sized from the project's media aspect ratio (so portraits
@@ -93,14 +94,12 @@ export function Buildings() {
 
   return (
     <group>
-      {/* Decorative outer skyline — towers far behind / beside the lane. */}
+      {/* Decorative outer skyline — towers far behind / beside the lane.
+          The facade shader uses world-space coords, so each instance
+          picks up a unique window pattern from its position. */}
       <instancedMesh ref={fillerRef} args={[undefined, undefined, NUM_FILLER]}>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial
-          color="#0a0a14"
-          roughness={0.85}
-          metalness={0.12}
-        />
+        <FacadeMaterial roughness={0.85} metalness={0.12} />
       </instancedMesh>
 
       {/* Project lane — one massive tower per project. */}
