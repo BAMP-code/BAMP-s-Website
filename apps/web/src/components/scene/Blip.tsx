@@ -1,19 +1,48 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
-import type { Group } from "three";
+import type { Group, Mesh, MeshStandardMaterial } from "three";
 import { blipMessages } from "@/content/blip";
 
-// Blade-Runner-style ad-blimp. Segmented hull along X, antenna masts,
-// running lights, two searchlight cones beaming down, and a large LED
-// screen mounted beside the hull cycling Bryan's messages
-// (`:p`, `hello`, `<3`) with a glitch flicker between each.
+// Blade-Runner-style ad-blimp. Procedural assembly approximating the
+// Spinner anatomy: stretched cylindrical hull with panel-line emissive
+// detail, tail fins, hanging gondola pod, twin antenna masts, full
+// running-light kit (port red / starboard green / belly strobe / cyan
+// edge lights), three searchlights, and a SUSPENDED square LED screen
+// on visible cables — not the angled flat panel of the previous pass.
+//
+// Sized to feel imposing without dominating: ~14 units long, ~15 below
+// the camera at scroll=0, drifting overhead as the camera descends.
+
 const MESSAGE_INTERVAL_MS = 3000;
 const GLITCH_DURATION_MS = 220;
-const SIDE_LIGHT_COUNT = 10;
+const HULL_HALF_LENGTH = 6.5;
+const HULL_RADIUS = 1.05;
+const SIDE_LIGHT_COUNT = 14;
+const PANEL_LINE_SHADER_HEADER = /* glsl */ `
+varying vec3 vLocalPos;
+varying vec3 vLocalNormal;
+`;
+const PANEL_LINE_SHADER_VERTEX = /* glsl */ `
+vLocalPos = position;
+vLocalNormal = normal;
+`;
+const PANEL_LINE_SHADER_FRAGMENT = /* glsl */ `
+// Panel grooves: horizontal rings spaced ~0.6 m apart; vertical lines
+// every ~30° around the hull. Subtle but reads as "this is hardware,
+// not a plastic toy."
+float ringSpacing = 0.6;
+float ring = step(0.93, abs(sin(vLocalPos.x * 3.14159 / ringSpacing)));
+float angle = atan(vLocalPos.z, vLocalPos.y);
+float vertical = step(0.97, abs(sin(angle * 6.0)));
+float lines = max(ring, vertical);
+totalEmissiveRadiance += vec3(0.42, 0.62, 0.85) * lines * 0.4;
+diffuseColor.rgb *= mix(1.0, 0.55, lines);
+`;
 
 export function Blip() {
   const groupRef = useRef<Group>(null);
+  const strobeRef = useRef<Mesh>(null);
   const [messageIndex, setMessageIndex] = useState(0);
   const [glitching, setGlitching] = useState(false);
 
@@ -39,169 +68,261 @@ export function Blip() {
   useFrame((state) => {
     const t = state.clock.elapsedTime;
     if (groupRef.current) {
-      // Slow vertical drift + a small roll so the searchlights don't
-      // look mechanically static.
-      groupRef.current.position.y = 22 + Math.sin(t * 0.32) * 0.35;
+      groupRef.current.position.y = 23 + Math.sin(t * 0.32) * 0.45;
       groupRef.current.rotation.z = Math.sin(t * 0.18) * 0.04;
-      groupRef.current.rotation.y = Math.sin(t * 0.11) * 0.06;
+      groupRef.current.rotation.y = Math.sin(t * 0.11) * 0.05;
+    }
+    // Belly strobe: 0.5 Hz hard blink.
+    if (strobeRef.current) {
+      const mat = strobeRef.current.material as MeshStandardMaterial;
+      const on = Math.sin(t * Math.PI) > 0.6;
+      mat.emissiveIntensity = on ? 6 : 0.05;
     }
   });
 
   const message = blipMessages[messageIndex] ?? "";
 
-  // Running lights along the lower edge of the hull.
+  // Cyan running lights along the lower hull edge.
   const sideLights = useMemo(
     () =>
       Array.from({ length: SIDE_LIGHT_COUNT }, (_, i) => {
-        const xRange = 5.6;
-        const x = -xRange / 2 + (xRange * i) / (SIDE_LIGHT_COUNT - 1);
-        return x;
+        const xRange = HULL_HALF_LENGTH * 1.85;
+        return -xRange / 2 + (xRange * i) / (SIDE_LIGHT_COUNT - 1);
       }),
     [],
   );
 
   return (
-    <group ref={groupRef} position={[0, 22, -3]}>
-      {/* Main hull — stretched cylinder along X with subtle taper. */}
+    <group ref={groupRef} position={[0, 23, -3]}>
+      {/* Main hull. Stretched cylinder along X; panel lines via
+          onBeforeCompile. */}
       <mesh rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.85, 0.7, 6.2, 16]} />
+        <cylinderGeometry
+          args={[HULL_RADIUS, HULL_RADIUS * 0.85, HULL_HALF_LENGTH * 2, 24]}
+        />
         <meshStandardMaterial
-          color="#16161e"
+          color="#1a1a26"
           emissive="#0a0a18"
-          emissiveIntensity={0.6}
-          roughness={0.45}
-          metalness={0.7}
+          emissiveIntensity={0.55}
+          roughness={0.42}
+          metalness={0.78}
+          onBeforeCompile={(shader) => {
+            shader.vertexShader = shader.vertexShader.replace(
+              "#include <common>",
+              `#include <common>\n${PANEL_LINE_SHADER_HEADER}`,
+            );
+            shader.vertexShader = shader.vertexShader.replace(
+              "#include <begin_vertex>",
+              `#include <begin_vertex>\n${PANEL_LINE_SHADER_VERTEX}`,
+            );
+            shader.fragmentShader = shader.fragmentShader.replace(
+              "#include <common>",
+              `#include <common>\n${PANEL_LINE_SHADER_HEADER}`,
+            );
+            shader.fragmentShader = shader.fragmentShader.replace(
+              "#include <emissivemap_fragment>",
+              `#include <emissivemap_fragment>\n${PANEL_LINE_SHADER_FRAGMENT}`,
+            );
+          }}
         />
       </mesh>
 
-      {/* Front tapered nose. */}
-      <mesh rotation={[0, 0, -Math.PI / 2]} position={[3.6, 0, 0]}>
-        <cylinderGeometry args={[0.4, 0.85, 1.2, 16]} />
-        <meshStandardMaterial
-          color="#16161e"
-          roughness={0.45}
-          metalness={0.7}
-        />
+      {/* Tapered nose cone. */}
+      <mesh
+        rotation={[0, 0, -Math.PI / 2]}
+        position={[HULL_HALF_LENGTH + 0.6, 0, 0]}
+      >
+        <cylinderGeometry args={[0.4, HULL_RADIUS * 0.9, 1.4, 16]} />
+        <meshStandardMaterial color="#16161e" roughness={0.45} metalness={0.7} />
       </mesh>
 
-      {/* Rear engine block. */}
-      <mesh position={[-3.4, 0, 0]}>
-        <boxGeometry args={[0.6, 0.9, 1.1]} />
-        <meshStandardMaterial
-          color="#0a0a14"
-          roughness={0.55}
-          metalness={0.55}
-        />
+      {/* Rear engine block + glow. */}
+      <mesh position={[-HULL_HALF_LENGTH - 0.4, 0, 0]}>
+        <boxGeometry args={[0.9, 1.0, 1.4]} />
+        <meshStandardMaterial color="#0a0a14" roughness={0.55} metalness={0.55} />
       </mesh>
-
-      {/* Engine glow disc. */}
-      <mesh position={[-3.78, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
-        <circleGeometry args={[0.32, 24]} />
+      <mesh
+        position={[-HULL_HALF_LENGTH - 0.92, 0, 0]}
+        rotation={[0, Math.PI / 2, 0]}
+      >
+        <circleGeometry args={[0.36, 24]} />
         <meshBasicMaterial color="#ff5a00" toneMapped={false} />
       </mesh>
 
-      {/* Top antenna masts. */}
-      <mesh position={[-2.1, 1.05, 0]}>
-        <cylinderGeometry args={[0.045, 0.045, 1.7, 8]} />
+      {/* Tail fins — vertical + 2 horizontal, all aft of the engine. */}
+      <mesh position={[-HULL_HALF_LENGTH + 0.5, 1.2, 0]}>
+        <boxGeometry args={[1.6, 1.4, 0.1]} />
+        <meshStandardMaterial color="#16161e" metalness={0.6} roughness={0.5} />
+      </mesh>
+      <mesh position={[-HULL_HALF_LENGTH + 0.5, -1.05, 0]}>
+        <boxGeometry args={[1.6, 0.8, 0.1]} />
+        <meshStandardMaterial color="#16161e" metalness={0.6} roughness={0.5} />
+      </mesh>
+      <mesh position={[-HULL_HALF_LENGTH + 0.5, 0, 1.0]}>
+        <boxGeometry args={[1.6, 0.1, 1.2]} />
+        <meshStandardMaterial color="#16161e" metalness={0.6} roughness={0.5} />
+      </mesh>
+      <mesh position={[-HULL_HALF_LENGTH + 0.5, 0, -1.0]}>
+        <boxGeometry args={[1.6, 0.1, 1.2]} />
+        <meshStandardMaterial color="#16161e" metalness={0.6} roughness={0.5} />
+      </mesh>
+
+      {/* Top antenna masts + magenta tip beacons. */}
+      <mesh position={[-2.3, 1.25, 0]}>
+        <cylinderGeometry args={[0.05, 0.05, 1.9, 8]} />
         <meshStandardMaterial color="#28283c" metalness={0.6} />
       </mesh>
-      <mesh position={[1.6, 1.1, 0]}>
-        <cylinderGeometry args={[0.045, 0.045, 1.9, 8]} />
+      <mesh position={[1.7, 1.3, 0]}>
+        <cylinderGeometry args={[0.05, 0.05, 2.1, 8]} />
         <meshStandardMaterial color="#28283c" metalness={0.6} />
       </mesh>
-      <mesh position={[-2.1, 1.95, 0]}>
-        <sphereGeometry args={[0.08, 12, 12]} />
+      <mesh position={[-2.3, 2.25, 0]}>
+        <sphereGeometry args={[0.09, 12, 12]} />
         <meshStandardMaterial
           color="#ff2bd6"
           emissive="#ff2bd6"
-          emissiveIntensity={2.4}
+          emissiveIntensity={3.0}
           toneMapped={false}
         />
       </mesh>
-      <mesh position={[1.6, 2.1, 0]}>
-        <sphereGeometry args={[0.08, 12, 12]} />
+      <mesh position={[1.7, 2.4, 0]}>
+        <sphereGeometry args={[0.09, 12, 12]} />
         <meshStandardMaterial
           color="#ff2bd6"
           emissive="#ff2bd6"
-          emissiveIntensity={2.4}
+          emissiveIntensity={3.0}
           toneMapped={false}
         />
       </mesh>
 
-      {/* Bottom fin / keel. */}
-      <mesh position={[0.4, -0.85, 0]}>
-        <boxGeometry args={[3.2, 0.45, 0.08]} />
-        <meshStandardMaterial
-          color="#0a0a14"
-          roughness={0.5}
-          metalness={0.7}
-        />
+      {/* Hanging gondola pod under the front of the hull. */}
+      <mesh position={[2.0, -1.65, 0]}>
+        <boxGeometry args={[2.0, 0.8, 1.1]} />
+        <meshStandardMaterial color="#0a0a14" metalness={0.6} roughness={0.55} />
+      </mesh>
+      {/* Gondola support struts. */}
+      <mesh position={[1.4, -0.95, 0.4]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.95, 6]} />
+        <meshStandardMaterial color="#28283c" metalness={0.6} />
+      </mesh>
+      <mesh position={[2.6, -0.95, 0.4]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.95, 6]} />
+        <meshStandardMaterial color="#28283c" metalness={0.6} />
+      </mesh>
+      <mesh position={[1.4, -0.95, -0.4]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.95, 6]} />
+        <meshStandardMaterial color="#28283c" metalness={0.6} />
+      </mesh>
+      <mesh position={[2.6, -0.95, -0.4]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.95, 6]} />
+        <meshStandardMaterial color="#28283c" metalness={0.6} />
+      </mesh>
+      {/* Gondola front window. */}
+      <mesh position={[3.02, -1.65, 0]}>
+        <planeGeometry args={[0.6, 0.4]} />
+        <meshBasicMaterial color="#ffae42" toneMapped={false} />
       </mesh>
 
-      {/* Running lights along both sides of the hull. */}
+      {/* Cyan running lights along both flanks. */}
       {sideLights.map((x, i) => (
         <group key={`light-${i}`}>
-          <mesh position={[x, -0.65, 0.7]}>
-            <sphereGeometry args={[0.05, 8, 8]} />
+          <mesh position={[x, -0.85, 0.92]}>
+            <sphereGeometry args={[0.06, 8, 8]} />
             <meshStandardMaterial
               color="#00f6ff"
               emissive="#00f6ff"
-              emissiveIntensity={2.2}
+              emissiveIntensity={2.6}
               toneMapped={false}
             />
           </mesh>
-          <mesh position={[x, -0.65, -0.7]}>
-            <sphereGeometry args={[0.05, 8, 8]} />
+          <mesh position={[x, -0.85, -0.92]}>
+            <sphereGeometry args={[0.06, 8, 8]} />
             <meshStandardMaterial
               color="#00f6ff"
               emissive="#00f6ff"
-              emissiveIntensity={2.2}
+              emissiveIntensity={2.6}
               toneMapped={false}
             />
           </mesh>
         </group>
       ))}
 
-      {/* Searchlight cones pointing down. Translucent volumes that
-          read as light shafts under bloom. */}
-      <mesh position={[-1.6, -3.2, 0]} rotation={[Math.PI, 0, 0]}>
-        <coneGeometry args={[1.5, 5.4, 22, 1, true]} />
-        <meshBasicMaterial
-          color="#aac8ff"
-          transparent
-          opacity={0.16}
-          side={2}
-          depthWrite={false}
+      {/* Port (red) + starboard (green) navigation lights at the wingtips. */}
+      <mesh position={[1.2, -0.4, 1.55]}>
+        <sphereGeometry args={[0.13, 12, 12]} />
+        <meshStandardMaterial
+          color="#00ff5a"
+          emissive="#00ff5a"
+          emissiveIntensity={3.5}
           toneMapped={false}
         />
       </mesh>
-      <mesh position={[1.7, -3.2, 0]} rotation={[Math.PI, 0, 0]}>
-        <coneGeometry args={[1.5, 5.4, 22, 1, true]} />
-        <meshBasicMaterial
-          color="#aac8ff"
-          transparent
-          opacity={0.16}
-          side={2}
-          depthWrite={false}
+      <mesh position={[1.2, -0.4, -1.55]}>
+        <sphereGeometry args={[0.13, 12, 12]} />
+        <meshStandardMaterial
+          color="#ff2222"
+          emissive="#ff2222"
+          emissiveIntensity={3.5}
           toneMapped={false}
         />
       </mesh>
 
-      {/* LED billboard, mounted on the right side, angled toward the
-          camera path. Frame + screen + message text + strapline. */}
-      <group position={[3.3, 0.05, 1.2]} rotation={[0, -Math.PI * 0.18, 0]}>
+      {/* Belly strobe — blinks on at ~0.5 Hz. */}
+      <mesh ref={strobeRef} position={[-1.0, -1.05, 0]}>
+        <sphereGeometry args={[0.15, 12, 12]} />
+        <meshStandardMaterial
+          color="#ffffff"
+          emissive="#ffffff"
+          emissiveIntensity={0.05}
+          toneMapped={false}
+        />
+      </mesh>
+
+      {/* Searchlight cones — three of them, fanning down. */}
+      {[-2.2, 0.2, 2.4].map((cx, i) => (
+        <mesh
+          key={`searchlight-${i}`}
+          position={[cx, -3.5, 0]}
+          rotation={[Math.PI, 0, 0]}
+        >
+          <coneGeometry args={[1.5, 5.6, 22, 1, true]} />
+          <meshBasicMaterial
+            color="#aac8ff"
+            transparent
+            opacity={0.16}
+            side={2}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
+
+      {/* SUSPENDED LED billboard — square panel hanging below the hull
+          on visible cables, like the Blade Runner reference. */}
+      <group position={[-0.5, -4.2, 0]}>
+        {/* Suspension cables. */}
+        <mesh position={[-1.6, 1.6, 0]}>
+          <cylinderGeometry args={[0.02, 0.02, 3.2, 6]} />
+          <meshStandardMaterial color="#28283c" metalness={0.6} />
+        </mesh>
+        <mesh position={[1.6, 1.6, 0]}>
+          <cylinderGeometry args={[0.02, 0.02, 3.2, 6]} />
+          <meshStandardMaterial color="#28283c" metalness={0.6} />
+        </mesh>
+        {/* Frame. */}
         <mesh>
-          <boxGeometry args={[3.7, 2.5, 0.16]} />
+          <boxGeometry args={[3.6, 3.0, 0.18]} />
           <meshStandardMaterial
             color="#0e0e18"
             roughness={0.45}
-            metalness={0.75}
+            metalness={0.78}
             emissive="#1a1a26"
-            emissiveIntensity={0.4}
+            emissiveIntensity={0.35}
           />
         </mesh>
-        <mesh position={[0, 0, 0.085]}>
-          <planeGeometry args={[3.45, 2.25]} />
+        {/* Screen face. */}
+        <mesh position={[0, 0, 0.095]}>
+          <planeGeometry args={[3.35, 2.75]} />
           <meshBasicMaterial
             color="#040410"
             opacity={glitching ? 0.45 : 1}
@@ -209,11 +330,12 @@ export function Blip() {
             toneMapped={false}
           />
         </mesh>
+        {/* Message text. */}
         <Text
-          position={[0, 0.4, 0.095]}
-          fontSize={0.78}
+          position={[0, 0.55, 0.105]}
+          fontSize={0.95}
           color="#00f6ff"
-          outlineWidth={0.018}
+          outlineWidth={0.022}
           outlineColor="#00f6ff"
           outlineOpacity={glitching ? 0.1 : 0.6}
           fillOpacity={glitching ? 0.25 : 1}
@@ -222,13 +344,14 @@ export function Blip() {
         >
           {message}
         </Text>
+        {/* Strapline. */}
         <Text
-          position={[0, -0.7, 0.095]}
-          fontSize={0.22}
+          position={[0, -0.85, 0.105]}
+          fontSize={0.26}
           color="#ff2bd6"
           outlineWidth={0.005}
           outlineColor="#ff2bd6"
-          outlineOpacity={0.4}
+          outlineOpacity={0.45}
           letterSpacing={0.18}
           anchorX="center"
           anchorY="middle"
