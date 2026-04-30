@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Manrope is loaded by the layout via Google Fonts.
+   Real cyberpunk display font lands in a later merge (see vision §3). */
+:root {
+  --font-manrope:
+    "Manrope", "Inter", "Arial", system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+}
+
+html,
+body {
+  background: theme("colors.surface");
+  color: theme("colors.primary");
+  font-family: var(--font-manrope);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
