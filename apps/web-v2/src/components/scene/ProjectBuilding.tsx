@@ -1,6 +1,9 @@
-import { Suspense } from "react";
+import { Suspense, useMemo, useRef } from "react";
 import { useTexture, Text } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import type { ShaderMaterial, Texture } from "three";
 import type { Project } from "@/lib/types";
+import { screenVertexShader, screenFragmentShader } from "./screen-shader";
 
 type Props = {
   project: Project;
@@ -106,12 +109,49 @@ function ProjectScreenImage({
   height: number;
   position: [number, number, number];
 }) {
-  const texture = useTexture(src);
+  const texture = useTexture(src) as Texture;
   texture.anisotropy = 8;
+  return (
+    <ScreenSurface texture={texture} width={width} height={height} position={position} />
+  );
+}
+
+function ScreenSurface({
+  texture,
+  width,
+  height,
+  position,
+}: {
+  texture: Texture;
+  width: number;
+  height: number;
+  position: [number, number, number];
+}) {
+  const matRef = useRef<ShaderMaterial>(null);
+  const uniforms = useMemo(
+    () => ({
+      uMap: { value: texture },
+      uTime: { value: 0 },
+    }),
+    [texture],
+  );
+
+  useFrame((state) => {
+    if (matRef.current) {
+      matRef.current.uniforms.uTime.value = state.clock.elapsedTime;
+    }
+  });
+
   return (
     <mesh position={position}>
       <planeGeometry args={[width, height]} />
-      <meshBasicMaterial map={texture} toneMapped={false} />
+      <shaderMaterial
+        ref={matRef}
+        uniforms={uniforms}
+        vertexShader={screenVertexShader}
+        fragmentShader={screenFragmentShader}
+        toneMapped={false}
+      />
     </mesh>
   );
 }
