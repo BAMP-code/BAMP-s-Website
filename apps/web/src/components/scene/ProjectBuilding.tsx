@@ -9,10 +9,11 @@ type Props = {
   project: Project;
   position: [number, number, number];
   height: number;
-  width?: number;
+  width: number;
+  screenWidth: number;
+  screenHeight: number;
+  screenY: number;
 };
-
-const SCREEN_BORDER = 0.16;
 
 // One building = one project. Tall rectangular block; the +z face
 // hosts a screen with the project's poster (still image) or, for
@@ -21,18 +22,21 @@ const SCREEN_BORDER = 0.16;
 //
 // All buildings face the camera (+z); they're positioned along the
 // descent corridor at varying X / Z / heights so the camera passes
-// each at a different scroll position.
+// each at a different scroll position. Screen size + Y position are
+// computed by Buildings.tsx from the project's media aspect.
 export function ProjectBuilding({
   project,
   position,
   height,
-  width = 2.4,
+  width,
+  screenWidth,
+  screenHeight,
+  screenY,
 }: Props) {
   const depth = width * 0.85;
-  const screenWidth = width - SCREEN_BORDER * 2;
-  const screenHeight = height * 0.42;
-  const screenY = height * 0.62;
   const screenZ = depth / 2 + 0.005;
+  // Title strip sits just below the screen.
+  const titleY = screenY - screenHeight / 2 - 0.55;
 
   return (
     <group position={position}>
@@ -65,15 +69,15 @@ export function ProjectBuilding({
         {project.media.type === "image" ? (
           <ProjectScreenImage
             src={project.media.src}
-            width={screenWidth - 0.04}
-            height={screenHeight - 0.04}
+            width={screenWidth - 0.06}
+            height={screenHeight - 0.06}
             position={[0, screenY, screenZ + 0.008]}
           />
         ) : (
           <ProjectScreenFallback
             label={project.title}
-            width={screenWidth - 0.04}
-            height={screenHeight - 0.04}
+            width={screenWidth - 0.06}
+            height={screenHeight - 0.06}
             position={[0, screenY, screenZ + 0.008]}
           />
         )}
@@ -81,12 +85,12 @@ export function ProjectBuilding({
 
       {/* Project title strip below the screen. */}
       <Text
-        position={[0, height * 0.34, screenZ + 0.008]}
-        fontSize={0.14}
+        position={[0, titleY, screenZ + 0.008]}
+        fontSize={Math.min(0.42, screenWidth * 0.06)}
         color="#00f6ff"
         outlineColor="#00f6ff"
-        outlineWidth={0.004}
-        outlineOpacity={0.45}
+        outlineWidth={0.005}
+        outlineOpacity={0.5}
         maxWidth={screenWidth}
         textAlign="center"
         anchorX="center"
