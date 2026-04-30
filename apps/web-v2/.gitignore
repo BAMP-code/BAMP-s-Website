@@ -19,3 +19,7 @@ pnpm-debug.log*
 
 # macOS-generated files
 .DS_Store
+
+# Heavy media — local-only until re-encoded.
+# link-app-demo.mp4 is 50 MB; the audit tracks re-encoding it.
+public/videos/*.mp4
