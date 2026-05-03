@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
-import { Object3D } from "three";
+import { Object3D, Color } from "three";
 import type { InstancedMesh } from "three";
+import { MeshReflectorMaterial } from "@react-three/drei";
 import { projects } from "@/content/projects";
 import type { Project, ProjectCategory } from "@/lib/types";
 import { ProjectBuilding } from "./ProjectBuilding";
@@ -115,24 +116,41 @@ function layoutForProject(i: number, project: Project): Layout {
   };
 }
 
-const NUM_FILLER = 80;
+const NUM_FILLER = 110;
 const dummy = new Object3D();
+const tmpColor = new Color();
 
+// Two-tier filler placement: nearer ring at |X| 9..23, z -6..-66 +
+// further ring at |X| 18..40, z -40..-160 (the distant skyline that
+// fogs into the horizon glow).
 function buildFillerMatrix(i: number) {
   const seed = i * 12.97 + 41.3;
   const r = (Math.sin(seed) + 1) / 2;
   const r2 = (Math.cos(seed * 1.7) + 1) / 2;
   const r3 = (Math.sin(seed * 3.1) + 1) / 2;
   const side = i % 2 === 0 ? -1 : 1;
-  const x = side * (10 + r * 14);
-  const z = -6 - r2 * 60;
-  const w = 2.2 + r3 * 2.4;
-  const h = 8 + r * 32;
+
+  const farTier = i >= 70;
+  const x = side * (farTier ? 18 + r * 22 : 10 + r * 14);
+  const z = farTier ? -40 - r2 * 120 : -6 - r2 * 60;
+  const w = farTier ? 3.0 + r3 * 5.0 : 2.2 + r3 * 2.4;
+  const h = farTier ? 14 + r * 38 : 8 + r * 32;
+
   dummy.scale.set(w, h, w);
   dummy.position.set(x, h / 2, z);
   dummy.rotation.set(0, r3 * Math.PI, 0);
   dummy.updateMatrix();
   return dummy.matrix;
+}
+
+// Subtle per-instance color jitter so the filler doesn't read as
+// "stamped from one mold." Stays within the dark-blue range.
+function fillerColor(i: number) {
+  const seed = i * 7.13 + 9.4;
+  const dr = Math.sin(seed) * 0.06;
+  const dg = Math.sin(seed * 1.7) * 0.06;
+  const db = Math.cos(seed * 2.3) * 0.10;
+  return tmpColor.setRGB(0.95 + dr, 0.95 + dg, 1.05 + db);
 }
 
 export function Buildings() {
@@ -143,8 +161,10 @@ export function Buildings() {
     if (!mesh) return;
     for (let i = 0; i < NUM_FILLER; i++) {
       mesh.setMatrixAt(i, buildFillerMatrix(i));
+      mesh.setColorAt(i, fillerColor(i));
     }
     mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }, []);
 
   return (
@@ -152,7 +172,7 @@ export function Buildings() {
       {/* Decorative outer skyline — towers far behind / beside the lane. */}
       <instancedMesh ref={fillerRef} args={[undefined, undefined, NUM_FILLER]}>
         <boxGeometry args={[1, 1, 1]} />
-        <FacadeMaterial roughness={0.85} metalness={0.12} />
+        <FacadeMaterial roughness={0.85} metalness={0.12} vertexColors />
       </instancedMesh>
 
       {/* Project lane — tiered descent. */}
@@ -221,13 +241,26 @@ export function Buildings() {
         scale={1.0}
       />
 
-      {/* Wet-asphalt ground plane. */}
+      {/* Wet-asphalt ground — drei's MeshReflectorMaterial. Heavily
+          blurred low-res reflection so it's clearly puddled-wet (not
+          mirror-shiny) and cheap on GPU. The neon spill from signs +
+          building emissives reflects upward into the camera, which is
+          the single biggest "this is rainy night" signal. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -30]}>
         <planeGeometry args={[160, 200]} />
-        <meshStandardMaterial
+        <MeshReflectorMaterial
+          blur={[300, 100]}
+          resolution={512}
+          mixBlur={1.0}
+          mixStrength={1.4}
+          mirror={0}
+          mixContrast={1.0}
+          depthScale={0.6}
+          minDepthThreshold={0.85}
+          maxDepthThreshold={1.0}
           color="#04040a"
-          roughness={0.55}
-          metalness={0.35}
+          metalness={0.55}
+          roughness={0.7}
         />
       </mesh>
     </group>

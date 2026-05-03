@@ -89,6 +89,8 @@ type Props = {
   metalness?: number;
   emissive?: string;
   emissiveIntensity?: number;
+  /** Enable per-instance color tinting (used by InstancedMesh fillers). */
+  vertexColors?: boolean;
 };
 
 export function FacadeMaterial({
@@ -97,6 +99,7 @@ export function FacadeMaterial({
   metalness = 0.32,
   emissive = "#070914",
   emissiveIntensity = 0.15,
+  vertexColors = false,
 }: Props) {
   const ref = useRef<MeshStandardMaterial>(null);
   const uniforms = useMemo(() => ({ uFacadeTime: { value: 0 } }), []);
@@ -113,6 +116,7 @@ export function FacadeMaterial({
       metalness={metalness}
       emissive={emissive}
       emissiveIntensity={emissiveIntensity}
+      vertexColors={vertexColors}
       onBeforeCompile={(shader) => {
         shader.uniforms.uFacadeTime = uniforms.uFacadeTime;
         shader.vertexShader = shader.vertexShader.replace(

@@ -7,6 +7,7 @@ import {
   ChromaticAberration,
   Noise,
   Vignette,
+  DepthOfField,
 } from "@react-three/postprocessing";
 import { KernelSize, BlendFunction } from "postprocessing";
 import { Vector2 } from "three";
@@ -99,6 +100,16 @@ export function CityScene() {
             chromatic aberration + film grain + vignette read as
             "photographic frame" instead of "3D render." */}
         <EffectComposer multisampling={0}>
+          {/* DOF: focal plane around the project lane (~15–20 units
+              away from camera). Background and very-foreground go soft.
+              Subtle bokehScale; we don't want anime-style blur, just
+              cinematic falloff. */}
+          <DepthOfField
+            focusDistance={0.06}
+            focalLength={0.05}
+            bokehScale={1.6}
+            height={480}
+          />
           <Bloom
             intensity={0.6}
             luminanceThreshold={0.92}
