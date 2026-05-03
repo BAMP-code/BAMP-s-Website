@@ -5,6 +5,7 @@ import type { ShaderMaterial, Texture } from "three";
 import type { Project } from "@/lib/types";
 import { screenVertexShader, screenFragmentShader } from "./screen-shader";
 import { FacadeMaterial } from "./FacadeMaterial";
+import { RooftopGreebles } from "./RooftopGreebles";
 
 type Props = {
   project: Project;
@@ -97,6 +98,14 @@ export function ProjectBuilding({
       >
         {project.title.toUpperCase()}
       </Text>
+
+      {/* Rooftop machinery — kills the perfectly-flat-roof tell. */}
+      <RooftopGreebles
+        seed={project.id.length * 17 + project.title.charCodeAt(0)}
+        width={width * 0.95}
+        depth={depth * 0.95}
+        baseY={height}
+      />
     </group>
   );
 }

@@ -5,6 +5,7 @@ import { projects } from "@/content/projects";
 import type { Project, ProjectCategory } from "@/lib/types";
 import { ProjectBuilding } from "./ProjectBuilding";
 import { FacadeMaterial } from "./FacadeMaterial";
+import { NeonSign } from "./NeonSign";
 
 // Project buildings live on a tiered descent:
 //  - Hero (i = 0..2): largest towers, closest to the camera path,
@@ -171,6 +172,54 @@ export function Buildings() {
           />
         );
       })}
+
+      {/* Modeled neon signage on filler / outer skyline buildings.
+          Each sign carries a paired off-screen point light so the
+          building behind picks up the sign's color — the
+          Shibuya/Mongkok cue per the realism research. Sign text is
+          intentionally short Asian-megacity style. */}
+      <NeonSign
+        text="NEON"
+        position={[-9, 16, -10]}
+        rotation={[0, Math.PI * 0.45, 0]}
+        color="#ff2bd6"
+        scale={1.2}
+      />
+      <NeonSign
+        text="VOLT"
+        position={[10, 12, -18]}
+        rotation={[0, -Math.PI * 0.4, 0]}
+        color="#00f6ff"
+        scale={1.1}
+      />
+      <NeonSign
+        text="2049"
+        position={[-12, 22, -22]}
+        rotation={[0, Math.PI * 0.5, 0]}
+        color="#ffae42"
+        scale={1.0}
+      />
+      <NeonSign
+        text="SUSHI"
+        position={[11, 18, -32]}
+        rotation={[0, -Math.PI * 0.45, 0]}
+        color="#ff2222"
+        scale={1.1}
+      />
+      <NeonSign
+        text="OPEN"
+        position={[-14, 8, -36]}
+        rotation={[0, Math.PI * 0.4, 0]}
+        color="#00ff88"
+        scale={0.9}
+      />
+      <NeonSign
+        text="404"
+        position={[13, 26, -45]}
+        rotation={[0, -Math.PI * 0.5, 0]}
+        color="#ff2bd6"
+        scale={1.0}
+      />
 
       {/* Wet-asphalt ground plane. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -30]}>
