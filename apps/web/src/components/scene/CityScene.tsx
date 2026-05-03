@@ -1,8 +1,15 @@
 import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { PerspectiveCamera } from "@react-three/drei";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { KernelSize } from "postprocessing";
+import { PerspectiveCamera, Environment } from "@react-three/drei";
+import {
+  EffectComposer,
+  Bloom,
+  ChromaticAberration,
+  Noise,
+  Vignette,
+} from "@react-three/postprocessing";
+import { KernelSize, BlendFunction } from "postprocessing";
+import { Vector2 } from "three";
 import { CameraRig } from "./CameraRig";
 import { Blip } from "./Blip";
 import { Buildings } from "./Buildings";
@@ -10,33 +17,41 @@ import { Rain } from "./Rain";
 import { Lightning } from "./Lightning";
 import { Skydome } from "./Skydome";
 
-// Cinematic scroll-descent scene. Mounted via client:only="react".
-// Camera starts high above the project lane (Y=32, looking down) and
-// descends to street level (Y=2.2, looking forward). Buildings around
-// the corridor are 28–48 units tall.
-//
-// Sky + fog are tuned to Edgerunners / Blade Runner 2049 light-pollution
-// palette: warm purple-orange, never blue. Bloom is configured to only
-// catch true emissives (threshold 1.0) — without that, midtones bloom
-// and the scene reads "washed out" instead of "neon."
+// Cinematic scroll-descent scene. Full realism stack now:
+//   - Image-based lighting from a Poly Haven night HDRI (satara_night
+//     1k, 1.8 MB). Provides the directionless ambient color tint that
+//     makes PBR materials stop reading as plastic.
+//   - Hemisphere + cool-moonlight directional replace the point-light
+//     spam from earlier passes; the HDRI is doing most of the ambient
+//     work now.
+//   - Tone mapping exposure dropped to 0.65 — night scenes need to be
+//     *dark* with bright neon punching through.
+//   - Selective tight-threshold bloom (0.92) so only true emissives
+//     glow; chromatic aberration + film-grain Noise + vignette sell
+//     "this is a photographed frame, not a 3D render."
 export function CityScene() {
   return (
     <Canvas
       gl={{
         antialias: true,
         powerPreference: "high-performance",
-        toneMappingExposure: 1.0,
+        toneMappingExposure: 0.65,
       }}
       dpr={[1, 2]}
       style={{ width: "100%", height: "100%" }}
     >
       <Suspense fallback={null}>
-        {/* FogExp2 with warm-purple color matches Mie scattering and
-            the horizon stop of the skydome. Foreground fades INTO the
-            sky color rather than into a black void. */}
-        <fogExp2 attach="fog" args={["#2a0e3a", 0.014]} />
-
+        {/* Volumetric fog + sky. Fog matches the warm-dim horizon glow. */}
+        <fogExp2 attach="fog" args={["#0a0a12", 0.018]} />
         <Skydome />
+
+        {/* Image-based lighting from a real night HDRI. background=false
+            so we keep the procedural Skydome as the visible sky. */}
+        <Environment
+          files="/hdri/satara_night_1k.hdr"
+          resolution={256}
+          background={false}
+        />
 
         <PerspectiveCamera
           makeDefault
@@ -46,35 +61,31 @@ export function CityScene() {
           far={300}
         />
 
-        {/* Base lighting — kept low so emissives carry the scene. */}
-        <ambientLight intensity={0.18} />
-        <directionalLight position={[5, 30, 5]} intensity={0.4} />
-
-        {/* Neon point lights washing the project lane. These illuminate
-            (don't themselves bloom — they're not emissive geometry). */}
+        {/* Lighting rig — minimal now that the HDRI handles ambient.
+            One soft hemisphere, one cool moonlight key, and only a
+            couple of neon accent point lights instead of the previous
+            four. */}
+        <hemisphereLight
+          color="#0a0c14"
+          groundColor="#1a0f08"
+          intensity={0.18}
+        />
+        <directionalLight
+          position={[-30, 80, 20]}
+          color="#7088aa"
+          intensity={0.45}
+        />
         <pointLight
-          position={[-5, 22, -10]}
-          intensity={4.2}
-          distance={30}
+          position={[-5, 18, -14]}
+          intensity={2.4}
+          distance={28}
           color="#00f6ff"
         />
         <pointLight
-          position={[5, 14, -22]}
-          intensity={3.8}
-          distance={30}
+          position={[5, 8, -32]}
+          intensity={2.2}
+          distance={28}
           color="#ff2bd6"
-        />
-        <pointLight
-          position={[-4, 6, -36]}
-          intensity={3.4}
-          distance={30}
-          color="#ff2bd6"
-        />
-        <pointLight
-          position={[4, 4, -50]}
-          intensity={3.0}
-          distance={30}
-          color="#00f6ff"
         />
 
         <CameraRig />
@@ -83,17 +94,33 @@ export function CityScene() {
         <Buildings />
         <Rain />
 
-        {/* Bloom: threshold 1.0 means only pixels brighter than 1.0
-            (i.e., true emissives with intensity > 1) glow. Midtones
-            stay clean — that's why the scene now reads "neon city" not
-            "washed-out fog." Large kernel for soft, wide haloes. */}
-        <EffectComposer>
+        {/* Cinematic post stack — the realism research's #1 lever.
+            Tight bloom threshold so only emissive neon glows; subtle
+            chromatic aberration + film grain + vignette read as
+            "photographic frame" instead of "3D render." */}
+        <EffectComposer multisampling={0}>
           <Bloom
-            intensity={1.4}
-            luminanceThreshold={1.0}
-            luminanceSmoothing={0.05}
+            intensity={0.6}
+            luminanceThreshold={0.92}
+            luminanceSmoothing={0.025}
             mipmapBlur
             kernelSize={KernelSize.LARGE}
+          />
+          <ChromaticAberration
+            offset={new Vector2(0.0006, 0.0006)}
+            radialModulation={false}
+            modulationOffset={0.0}
+          />
+          <Noise
+            opacity={0.045}
+            premultiply
+            blendFunction={BlendFunction.SOFT_LIGHT}
+          />
+          <Vignette
+            eskil={false}
+            offset={0.18}
+            darkness={0.85}
+            blendFunction={BlendFunction.NORMAL}
           />
         </EffectComposer>
       </Suspense>
