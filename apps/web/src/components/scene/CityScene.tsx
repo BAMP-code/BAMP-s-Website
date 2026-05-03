@@ -17,6 +17,7 @@ import { Buildings } from "./Buildings";
 import { Rain } from "./Rain";
 import { Lightning } from "./Lightning";
 import { Skydome } from "./Skydome";
+import { Traffic } from "./Traffic";
 
 // Cinematic scroll-descent scene. Full realism stack now:
 //   - Image-based lighting from a Poly Haven night HDRI (satara_night
@@ -93,6 +94,7 @@ export function CityScene() {
         <Lightning />
         <Blip />
         <Buildings />
+        <Traffic />
         <Rain />
 
         {/* Cinematic post stack — the realism research's #1 lever.
