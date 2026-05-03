@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 import type { Group, Mesh, MeshStandardMaterial } from "three";
 import { blipMessages } from "@/content/blip";
+import { scrollProgressRef } from "@/lib/scroll";
 
 // Blade-Runner-style ad-blimp. Procedural assembly approximating the
 // Spinner anatomy: stretched cylindrical hull with panel-line emissive
@@ -67,10 +68,24 @@ export function Blip() {
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
+    const p = scrollProgressRef.current;
+
+    // Cinematic drift — Blip is the OPENING shot. Prominent at scroll
+    // 0, recedes up and back as the camera descends so by the time the
+    // viewer's halfway through the scene the Blip is a distant hazy
+    // silhouette in the upper third. Matches the storyboard in
+    // REFACTOR_VISION.md §1: "Blip drifts up + behind."
+    const driftT = Math.min(p / 0.35, 1);
+    const driftEase = 1 - Math.pow(1 - driftT, 2);
+    const baseY = 32 + driftEase * 28; // 32 → 60
+    const baseZ = -8 - driftEase * 70; // -8 → -78
+
     if (groupRef.current) {
-      groupRef.current.position.y = 23 + Math.sin(t * 0.32) * 0.45;
+      groupRef.current.position.x = Math.sin(t * 0.11) * 0.6;
+      groupRef.current.position.y = baseY + Math.sin(t * 0.32) * 0.5;
+      groupRef.current.position.z = baseZ;
       groupRef.current.rotation.z = Math.sin(t * 0.18) * 0.04;
-      groupRef.current.rotation.y = Math.sin(t * 0.11) * 0.05;
+      groupRef.current.rotation.y = Math.sin(t * 0.11) * 0.06;
     }
     // Belly strobe: 0.5 Hz hard blink.
     if (strobeRef.current) {
@@ -93,7 +108,7 @@ export function Blip() {
   );
 
   return (
-    <group ref={groupRef} position={[0, 23, -3]}>
+    <group ref={groupRef} position={[0, 32, -8]}>
       {/* Main hull. Stretched cylinder along X; panel lines via
           onBeforeCompile. */}
       <mesh rotation={[0, 0, Math.PI / 2]}>
@@ -298,20 +313,22 @@ export function Blip() {
       ))}
 
       {/* SUSPENDED LED billboard — square panel hanging below the hull
-          on visible cables, like the Blade Runner reference. */}
-      <group position={[-0.5, -4.2, 0]}>
+          on visible cables, like the Blade Runner reference. Sized big
+          (7 × 5) because the Blip is now further from the camera and
+          the screen is the readable element. */}
+      <group position={[-0.5, -5.6, 0]}>
         {/* Suspension cables. */}
-        <mesh position={[-1.6, 1.6, 0]}>
-          <cylinderGeometry args={[0.02, 0.02, 3.2, 6]} />
+        <mesh position={[-3.0, 2.4, 0]}>
+          <cylinderGeometry args={[0.025, 0.025, 4.8, 6]} />
           <meshStandardMaterial color="#28283c" metalness={0.6} />
         </mesh>
-        <mesh position={[1.6, 1.6, 0]}>
-          <cylinderGeometry args={[0.02, 0.02, 3.2, 6]} />
+        <mesh position={[3.0, 2.4, 0]}>
+          <cylinderGeometry args={[0.025, 0.025, 4.8, 6]} />
           <meshStandardMaterial color="#28283c" metalness={0.6} />
         </mesh>
         {/* Frame. */}
         <mesh>
-          <boxGeometry args={[3.6, 3.0, 0.18]} />
+          <boxGeometry args={[7.0, 5.0, 0.22]} />
           <meshStandardMaterial
             color="#0e0e18"
             roughness={0.45}
@@ -321,8 +338,8 @@ export function Blip() {
           />
         </mesh>
         {/* Screen face. */}
-        <mesh position={[0, 0, 0.095]}>
-          <planeGeometry args={[3.35, 2.75]} />
+        <mesh position={[0, 0, 0.115]}>
+          <planeGeometry args={[6.6, 4.6]} />
           <meshBasicMaterial
             color="#040410"
             opacity={glitching ? 0.45 : 1}
@@ -332,10 +349,10 @@ export function Blip() {
         </mesh>
         {/* Message text. */}
         <Text
-          position={[0, 0.55, 0.105]}
-          fontSize={0.95}
+          position={[0, 0.95, 0.125]}
+          fontSize={1.7}
           color="#00f6ff"
-          outlineWidth={0.022}
+          outlineWidth={0.04}
           outlineColor="#00f6ff"
           outlineOpacity={glitching ? 0.1 : 0.6}
           fillOpacity={glitching ? 0.25 : 1}
@@ -346,10 +363,10 @@ export function Blip() {
         </Text>
         {/* Strapline. */}
         <Text
-          position={[0, -0.85, 0.105]}
-          fontSize={0.26}
+          position={[0, -1.4, 0.125]}
+          fontSize={0.46}
           color="#ff2bd6"
-          outlineWidth={0.005}
+          outlineWidth={0.009}
           outlineColor="#ff2bd6"
           outlineOpacity={0.45}
           letterSpacing={0.18}
