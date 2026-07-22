@@ -1,0 +1,170 @@
+---
+import { projects } from "@/content/projects";
+import BinaryRule from "./BinaryRule.astro";
+
+const categoryLabel: Record<string, string> = {
+  cs: "CS",
+  "ee-me": "EE·ME",
+  drawings: "DRAW",
+};
+
+// Deterministic Night-City hash per project, e.g. #0x9F3·0001/10
+function hashFor(id: string, index: number, total: number): string {
+  let h = 0;
+  for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) & 0xffff;
+  const hex = h.toString(16).toUpperCase().padStart(3, "0").slice(0, 3);
+  const n = String(index + 1).padStart(4, "0");
+  return `#0x${hex}·${n}/${total}`;
+}
+
+const total = projects.length;
+---
+
+<section id="work" class="scroll-mt-20 px-6 sm:px-10">
+  <BinaryRule label="Selected Work" class="py-4" />
+
+  <div class="flex items-end justify-between gap-4 pb-2 pt-4">
+    <h2 class="font-display text-[clamp(1.6rem,4vw,2.6rem)] leading-none text-card-title">
+      Selected Work
+    </h2>
+    <span class="label whitespace-nowrap">
+      {total} shipped · 2021—2026
+    </span>
+  </div>
+
+  <div class="border-t border-border">
+    {
+      projects.map((p, i) => (
+        <details class="work-row">
+          <summary>
+            <span class="work-idx">{String(i + 1).padStart(2, "0")}</span>
+            <span class="work-title">{p.title}</span>
+            <span class="work-cat">{categoryLabel[p.category] ?? p.category}</span>
+            <span class="work-hash">{hashFor(p.id, i, total)}</span>
+            <span class="work-arrow" aria-hidden="true">↗</span>
+          </summary>
+          <div class="work-panel">
+            <div class="flex flex-col gap-4">
+              <p class="font-body text-base leading-relaxed text-card-body">
+                {p.description}
+              </p>
+              <span
+                class:list={[
+                  "label",
+                  p.status === "in-progress" ? "text-signal" : "text-muted",
+                ]}
+              >
+                {p.status === "in-progress" ? "◐ In progress" : "● Completed"}
+              </span>
+            </div>
+            <div class="work-media">
+              {p.media.type === "video" ? (
+                <video
+                  src={p.media.src}
+                  width={p.media.width}
+                  height={p.media.height}
+                  controls
+                  preload="metadata"
+                  playsinline
+                  aria-label={p.media.alt}
+                ></video>
+              ) : (
+                <img
+                  src={p.media.src}
+                  alt={p.media.alt}
+                  width={p.media.width}
+                  height={p.media.height}
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
+            </div>
+          </div>
+        </details>
+      ))
+    }
+  </div>
+</section>
+
+<script>
+  // Smoothly animate <details> open/close (native toggle just snaps).
+  // Web Animations API on the element height; content fade handled in
+  // CSS. Reduced-motion users keep the instant native behaviour.
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  class WorkAccordion {
+    el: HTMLDetailsElement;
+    summary: HTMLElement;
+    panel: HTMLElement;
+    animation: Animation | null = null;
+    isClosing = false;
+    isExpanding = false;
+
+    constructor(el: HTMLDetailsElement) {
+      this.el = el;
+      this.summary = el.querySelector("summary") as HTMLElement;
+      this.panel = el.querySelector(".work-panel") as HTMLElement;
+      this.summary.addEventListener("click", (e) => this.onClick(e));
+    }
+
+    onClick(e: MouseEvent) {
+      e.preventDefault();
+      this.el.style.overflow = "hidden";
+      if (this.isClosing || !this.el.open) this.open();
+      else if (this.isExpanding || this.el.open) this.shrink();
+    }
+
+    open() {
+      // Exclusive accordion: close any other open row on the way in.
+      WorkAccordion.registry.forEach((a) => {
+        if (a !== this && a.el.open) a.shrink();
+      });
+      this.el.style.height = `${this.el.offsetHeight}px`;
+      this.el.open = true;
+      window.requestAnimationFrame(() => this.expand());
+    }
+
+    expand() {
+      this.isExpanding = true;
+      const start = `${this.el.offsetHeight}px`;
+      const end = `${this.summary.offsetHeight + this.panel.offsetHeight}px`;
+      this.animation?.cancel();
+      this.animation = this.el.animate(
+        { height: [start, end] },
+        { duration: 360, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+      );
+      this.animation.onfinish = () => this.onFinish(true);
+      this.animation.oncancel = () => (this.isExpanding = false);
+    }
+
+    shrink() {
+      this.isClosing = true;
+      const start = `${this.el.offsetHeight}px`;
+      const end = `${this.summary.offsetHeight}px`;
+      this.animation?.cancel();
+      this.animation = this.el.animate(
+        { height: [start, end] },
+        { duration: 280, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+      );
+      this.animation.onfinish = () => this.onFinish(false);
+      this.animation.oncancel = () => (this.isClosing = false);
+    }
+
+    onFinish(open: boolean) {
+      this.el.open = open;
+      this.animation = null;
+      this.isClosing = this.isExpanding = false;
+      this.el.style.height = this.el.style.overflow = "";
+    }
+
+    static registry: WorkAccordion[] = [];
+  }
+
+  if (!reduceMotion) {
+    document
+      .querySelectorAll<HTMLDetailsElement>("details.work-row")
+      .forEach((el) => WorkAccordion.registry.push(new WorkAccordion(el)));
+  }
+</script>

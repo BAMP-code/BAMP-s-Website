@@ -1,0 +1,47 @@
+---
+const lead =
+  "I build things that think — autonomous agents, ML pipelines, and full-stack systems. Currently shipping stateful-memory + violation-detection infrastructure at Alterion.";
+
+const meta = [
+  { k: "Discipline", v: "Senior CS·AI — Stanford University" },
+  { k: "Recently", v: "Memory + violation infra @ Alterion" },
+  { k: "Stack", v: "Agents · ML pipelines · full-stack" },
+];
+---
+
+<header id="top" class="px-6 pb-10 pt-16 sm:px-10 sm:pt-20">
+  <span
+    class="inline-flex items-center gap-2 rounded-sm border border-accent/40 px-3 py-1.5 font-mono text-[0.68rem] uppercase tracking-[0.2em] text-accent"
+  >
+    <span class="status-dot"></span>
+    SYS.ONLINE — Open to new work · Stanford, CA
+  </span>
+
+  <h1
+    class="font-display mt-6 text-[clamp(3.4rem,13vw,11rem)] leading-[0.82] tracking-[0.005em] text-card-title"
+  >
+    <span class="glitch" data-text="Creative">Creative</span>
+    <span class="text-hazard">✦</span><br />Engineer
+  </h1>
+
+  <p class="mt-7 max-w-2xl font-body text-lg leading-relaxed text-card-body">
+    {lead}
+  </p>
+
+  <dl
+    class="mt-9 flex flex-col gap-3 border-t border-border pt-6 font-mono text-[0.82rem] text-muted sm:flex-row sm:flex-wrap sm:justify-between sm:gap-6"
+  >
+    {
+      meta.map((m) => (
+        <div class="flex flex-col gap-1">
+          <dt class="text-[0.6rem] uppercase tracking-[0.2em] text-muted/70">
+            {m.k}
+          </dt>
+          <dd class="text-primary">
+            <span class="text-hazard">▹</span> {m.v}
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+</header>

@@ -1,0 +1,44 @@
+---
+import { about } from "@/content/about";
+import BinaryRule from "./BinaryRule.astro";
+---
+
+<section id="contact" class="scroll-mt-20 px-6 sm:px-10">
+  <BinaryRule label="Contact" class="py-4" />
+
+  <div class="grid grid-cols-1 items-end gap-8 py-10 md:grid-cols-[1fr_auto]">
+    <h2 class="font-display text-[clamp(2.4rem,8vw,5.5rem)] leading-[0.86] text-card-title">
+      Let's build<br />something <span class="text-hazard">loud.</span>
+    </h2>
+
+    <div class="flex flex-col gap-2 md:items-end">
+      <ul class="flex flex-wrap gap-2 md:justify-end">
+        {
+          about.socials.map((s) => (
+            <li>
+              <a
+                href={s.url}
+                aria-label={s.label}
+                rel={s.url.startsWith("http") ? "noopener noreferrer" : undefined}
+                target={s.url.startsWith("http") ? "_blank" : undefined}
+                class="inline-block rounded-sm border border-border px-4 py-2.5 font-mono text-xs uppercase tracking-[0.12em] text-primary transition-colors hover:border-hazard hover:text-hazard"
+              >
+                <span class="text-hazard">↗</span> {s.platform}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      {
+        about.resumeUrl && (
+          <a
+            href={about.resumeUrl}
+            class="mt-2 font-mono text-xs uppercase tracking-[0.16em] text-muted transition-colors hover:text-hazard"
+          >
+            ⤓ Download résumé
+          </a>
+        )
+      }
+    </div>
+  </div>
+</section>

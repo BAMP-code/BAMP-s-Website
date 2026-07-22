@@ -1,0 +1,16 @@
+---
+// A faint binary divider — the wodniack section-marker device.
+// Pass an optional label that sits in the middle of the stream.
+interface Props {
+  label?: string;
+  class?: string;
+}
+const { label, class: className = "" } = Astro.props;
+
+const chunk = "0100 0010 · 0100 0001 · 0100 1101 · 0101 0000";
+const stream = label
+  ? `${chunk} · ${label.toUpperCase()} · ${chunk}`
+  : `${chunk} · ${chunk} · ${chunk}`;
+---
+
+<div class:list={["binary-rule", className]} aria-hidden="true">{stream}</div>

@@ -1,17 +1,18 @@
 import Lenis from "lenis";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-// Scroll system. One source of truth for "where in the page are we"
-// (scrollProgressRef.current ∈ [0, 1]). The R3F scene reads it each
-// frame; ScrollTrigger reads via Lenis's tick.
-
-gsap.registerPlugin(ScrollTrigger);
+// Smooth-scroll for the v2 editorial site (Lenis only — the old
+// gsap/ScrollTrigger + camera coupling belonged to the 3D descent and
+// is gone from the homepage). `scrollProgressRef` is kept exported for
+// the retained-but-unmounted scene components.
 
 export const scrollProgressRef = { current: 0 };
 
 let lenis: Lenis | null = null;
 let initialized = false;
+
+function setProgress(scroll: number, limit: number) {
+  scrollProgressRef.current = limit > 0 ? scroll / limit : 0;
+}
 
 export function initScroll() {
   if (typeof window === "undefined" || initialized) return;
@@ -24,9 +25,8 @@ export function initScroll() {
 
   if (reduceMotion) {
     const onScroll = () => {
-      const max =
-        document.documentElement.scrollHeight - window.innerHeight;
-      scrollProgressRef.current = max > 0 ? window.scrollY / max : 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(window.scrollY, max);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -40,13 +40,29 @@ export function initScroll() {
   });
 
   lenis.on("scroll", ({ scroll, limit }: { scroll: number; limit: number }) => {
-    scrollProgressRef.current = limit > 0 ? scroll / limit : 0;
-    ScrollTrigger.update();
+    setProgress(scroll, limit);
   });
 
-  // Drive Lenis from GSAP's ticker so they share one rAF.
-  gsap.ticker.add((time) => {
-    lenis?.raf(time * 1000);
-  });
-  gsap.ticker.lagSmoothing(0);
+  const raf = (time: number) => {
+    lenis?.raf(time);
+    requestAnimationFrame(raf);
+  };
+  requestAnimationFrame(raf);
+
+  // Route in-page anchor clicks through Lenis so smoothing is consistent
+  // (offset clears the sticky nav). Without JS, native jumps still work.
+  document
+    .querySelectorAll<HTMLAnchorElement>('a[href^="#"]')
+    .forEach((anchor) => {
+      anchor.addEventListener("click", (event) => {
+        const hash = anchor.getAttribute("href");
+        if (!hash || hash === "#") return;
+        const target = document.querySelector(hash);
+        if (!target) return;
+        event.preventDefault();
+        // Sections already carry `scroll-mt-20` (Lenis honors scroll-margin),
+        // which clears the sticky nav — so no extra offset here.
+        lenis?.scrollTo(target as HTMLElement);
+      });
+    });
 }

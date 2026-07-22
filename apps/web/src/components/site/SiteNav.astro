@@ -1,0 +1,66 @@
+---
+// Top HUD nav. Brand wordmark + section anchors + a real "FX" toggle
+// that mirrors wodniack's contrast toggle: it disables scanlines/glitch
+// for anyone who wants a calmer read, persisted in localStorage.
+const links = [
+  { label: "About", href: "#about" },
+  { label: "Work", href: "#work" },
+  { label: "Contact", href: "#contact" },
+];
+---
+
+<nav
+  class="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-surface/85 px-6 py-4 backdrop-blur-md sm:px-10"
+  aria-label="Primary"
+>
+  <a href="#top" class="font-mono text-sm font-semibold tracking-[0.26em] text-hazard">
+    BAMP<span class="text-muted">//</span>
+  </a>
+
+  <div class="flex items-center gap-6">
+    <ul class="hidden items-center gap-7 md:flex">
+      {
+        links.map((l) => (
+          <li>
+            <a
+              href={l.href}
+              class="font-mono text-xs uppercase tracking-[0.16em] text-muted transition-colors hover:text-hazard"
+            >
+              <span class="text-hazard">›</span> {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <button
+      id="fx-toggle"
+      type="button"
+      aria-pressed="false"
+      class="font-mono text-xs uppercase tracking-[0.16em] text-muted transition-colors hover:text-hazard"
+    >
+      <span aria-hidden="true">◑</span> FX <span id="fx-state" class="text-hazard">ON</span>
+    </button>
+  </div>
+</nav>
+
+<script>
+  const KEY = "bamp-fx";
+  const root = document.documentElement;
+  const btn = document.getElementById("fx-toggle");
+  const state = document.getElementById("fx-state");
+
+  function apply(off: boolean) {
+    root.classList.toggle("fx-off", off);
+    if (state) state.textContent = off ? "OFF" : "ON";
+    btn?.setAttribute("aria-pressed", off ? "true" : "false");
+  }
+
+  apply(localStorage.getItem(KEY) === "off");
+
+  btn?.addEventListener("click", () => {
+    const off = !root.classList.contains("fx-off");
+    localStorage.setItem(KEY, off ? "off" : "on");
+    apply(off);
+  });
+</script>
