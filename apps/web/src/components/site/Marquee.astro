@@ -1,0 +1,20 @@
+---
+// The single loud data-ticker (design 1 styling). Duplicated content so
+// the -50% keyframe loops seamlessly.
+const items = [
+  "01001000 · NIGHT CITY",
+  "▲ STANFORD, CA",
+  "PYTORCH",
+  "LANGCHAIN",
+  "KUBERNETES",
+  "REACT",
+  "10110 · AVAILABLE",
+];
+const loop = [...items, ...items];
+---
+
+<div class="marquee" role="presentation" aria-hidden="true">
+  <div class="marquee__track">
+    {loop.map((t) => <span>{t}</span>)}
+  </div>
+</div>

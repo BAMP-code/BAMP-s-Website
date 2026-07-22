@@ -1,0 +1,83 @@
+---
+import { about } from "@/content/about";
+import BinaryRule from "./BinaryRule.astro";
+
+const stats = [
+  { n: "10+", l: "Shipped projects" },
+  { n: "03", l: "Disciplines" },
+  { n: "AI", l: "Stanford track" },
+  { n: "∞", l: "Coffee / commit" },
+];
+---
+
+<section id="about" class="scroll-mt-20 px-6 sm:px-10">
+  <BinaryRule label="Profile" class="py-4" />
+
+  <h2 class="font-display pb-2 pt-4 text-[clamp(1.6rem,4vw,2.6rem)] leading-none text-card-title">
+    Profile
+  </h2>
+
+  <div class="grid grid-cols-1 gap-8 pt-6 md:grid-cols-[300px_1fr] md:gap-12">
+    <div class="relative">
+      <img
+        src={about.portrait.src}
+        alt={about.portrait.alt}
+        width={about.portrait.width}
+        height={about.portrait.height}
+        loading="lazy"
+        decoding="async"
+        class="w-full rounded border border-border object-cover grayscale contrast-110 transition duration-500 hover:grayscale-0"
+      />
+      <span
+        class="absolute -bottom-3 left-3 bg-hazard px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-surface"
+      >
+        {about.name} · {about.education?.split(",")[0]}
+      </span>
+    </div>
+
+    <div class="flex flex-col gap-7">
+      <p class="font-body text-lg leading-relaxed text-card-body">
+        {about.bio}
+      </p>
+
+      <div class="flex flex-col gap-3">
+        <span class="label">Education</span>
+        <p class="font-body text-base text-primary">{about.education}</p>
+      </div>
+
+      {
+        about.skills && (
+          <div class="flex flex-col gap-3">
+            <span class="label">Stack</span>
+            <ul class="flex flex-wrap gap-2">
+              {about.skills.map((s) => (
+                <li class="rounded-sm border border-border bg-surface-alt px-3 py-1 font-mono text-xs text-card-body transition-colors hover:border-hazard hover:text-hazard">
+                  {s}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </div>
+  </div>
+
+  <dl class="mt-12 grid grid-cols-2 border border-border md:grid-cols-4">
+    {
+      stats.map((s, i) => (
+        <div
+          class:list={[
+            "px-5 py-8",
+            i < 3 && "border-r border-border",
+            i < 2 && "border-b md:border-b-0 border-border",
+          ]}
+        >
+          <dt class="font-display text-[clamp(2rem,5vw,3.4rem)] leading-none text-hazard">
+            {s.n}
+          </dt>
+          <dd class="label mt-3">{s.l}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</section>
