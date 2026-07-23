@@ -307,20 +307,8 @@ body {
   display: block;
 }
 
-/* Content eases in as the row height animates (see WorkList script). */
-.work-row[open] .work-panel {
-  animation: work-reveal 0.42s 0.04s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes work-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
+/* Panel fade in/out is driven by the WorkList script (Web Animations
+   API) so it stays in sync with the height animation on open AND close. */
 
 @media (max-width: 800px) {
   .work-row > summary {
@@ -355,8 +343,7 @@ body {
   .status-dot,
   .glitch::before,
   .glitch::after,
-  .marquee__track,
-  .work-row[open] .work-panel {
+  .marquee__track {
     animation: none;
   }
   .glitch::before,

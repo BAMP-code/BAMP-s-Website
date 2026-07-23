@@ -99,6 +99,7 @@ const total = projects.length;
     summary: HTMLElement;
     panel: HTMLElement;
     animation: Animation | null = null;
+    panelAnim: Animation | null = null;
     isClosing = false;
     isExpanding = false;
 
@@ -131,9 +132,15 @@ const total = projects.length;
       const start = `${this.el.offsetHeight}px`;
       const end = `${this.summary.offsetHeight + this.panel.offsetHeight}px`;
       this.animation?.cancel();
+      this.panelAnim?.cancel();
       this.animation = this.el.animate(
         { height: [start, end] },
         { duration: 360, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+      );
+      // Content eases in just behind the height.
+      this.panelAnim = this.panel.animate(
+        { opacity: [0, 1], transform: ["translateY(10px)", "none"] },
+        { duration: 300, delay: 60, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "backwards" },
       );
       this.animation.onfinish = () => this.onFinish(true);
       this.animation.oncancel = () => (this.isExpanding = false);
@@ -144,9 +151,16 @@ const total = projects.length;
       const start = `${this.el.offsetHeight}px`;
       const end = `${this.summary.offsetHeight}px`;
       this.animation?.cancel();
+      this.panelAnim?.cancel();
+      // Fade the media out quickly (and hold it hidden) so it's gone well
+      // before the row finishes collapsing.
+      this.panelAnim = this.panel.animate(
+        { opacity: [1, 0], transform: ["none", "translateY(6px)"] },
+        { duration: 150, easing: "ease-out", fill: "forwards" },
+      );
       this.animation = this.el.animate(
         { height: [start, end] },
-        { duration: 280, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+        { duration: 300, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
       );
       this.animation.onfinish = () => this.onFinish(false);
       this.animation.oncancel = () => (this.isClosing = false);
