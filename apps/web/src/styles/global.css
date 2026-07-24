@@ -1,0 +1,351 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   bamp.codes v2 — "Protocol // Krome"
+   Cyberpunk 2077 / Edgerunners skin. See docs/DESIGN_DIRECTION.md
+   Fonts loaded via Google Fonts in layouts/Base.astro.
+   ============================================================ */
+:root {
+  --font-display: "Anton", "Arial Narrow", Impact, sans-serif;
+  --font-mono: "Share Tech Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-body: "Rajdhani", "Manrope", system-ui, -apple-system, sans-serif;
+  /* legacy alias so any stragglers still resolve */
+  --font-manrope: var(--font-body);
+}
+
+/* Lenis owns smooth scrolling (see lib/scroll.ts); keep CSS scroll on
+   auto so the two don't fight on anchor clicks. */
+html,
+body {
+  background: theme("colors.surface");
+  color: theme("colors.primary");
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Warm-black base gets a whisper of vignette so the corners sit back. */
+body {
+  background-image: radial-gradient(
+    120% 90% at 50% 0%,
+    rgba(252, 238, 10, 0.04),
+    transparent 60%
+  );
+}
+
+::selection {
+  background: theme("colors.hazard");
+  color: #0a0a07;
+}
+
+/* Visible, keyboard-first focus. */
+:where(a, button, summary, [tabindex]):focus-visible {
+  outline: 2px solid theme("colors.hazard");
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 200;
+  transform: translateY(-160%);
+  padding: 10px 16px;
+  background: theme("colors.hazard");
+  color: #0a0a07;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: transform 0.18s ease;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* ---------- HUD frame: scanlines + corner brackets ---------- */
+.hud-scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0 2px,
+    rgba(0, 0, 0, 0.16) 2px 3px
+  );
+  mix-blend-mode: multiply;
+}
+
+.hud-corner {
+  position: fixed;
+  width: 22px;
+  height: 22px;
+  border: 2px solid theme("colors.hazard");
+  z-index: 95;
+  pointer-events: none;
+  opacity: 0.85;
+}
+.hud-corner--tl { top: 12px; left: 12px; border-right: 0; border-bottom: 0; }
+.hud-corner--tr { top: 12px; right: 12px; border-left: 0; border-bottom: 0; }
+.hud-corner--bl { bottom: 12px; left: 12px; border-right: 0; border-top: 0; }
+.hud-corner--br { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
+
+/* ---------- typography helpers ---------- */
+.font-display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: theme("colors.muted");
+}
+
+.text-gradient {
+  background: linear-gradient(
+    92deg,
+    theme("colors.section-title-start"),
+    theme("colors.section-title-end")
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Faint binary section rule (wodniack device). */
+.binary-rule {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.42em;
+  color: #26240f;
+  overflow: hidden;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* ---------- status dot ---------- */
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: theme("colors.signal");
+  box-shadow: 0 0 10px theme("colors.signal");
+  animation: status-pulse 1.5s ease-in-out infinite;
+}
+@keyframes status-pulse {
+  50% { opacity: 0.25; }
+}
+
+/* ---------- glitch headline ---------- */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  pointer-events: none;
+}
+.glitch::before {
+  color: theme("colors.accent-secondary");
+  animation: glitch-r 5s steps(2) infinite;
+}
+.glitch::after {
+  color: theme("colors.accent");
+  animation: glitch-c 5.6s steps(2) infinite;
+}
+@keyframes glitch-r {
+  0%, 94%, 100% { opacity: 0; transform: none; }
+  95% { opacity: 0.55; transform: translate(-3px, 1px); }
+  98% { transform: translate(2px, -1px); }
+}
+@keyframes glitch-c {
+  0%, 92%, 100% { opacity: 0; transform: none; }
+  93% { opacity: 0.55; transform: translate(3px, -1px); }
+  97% { transform: translate(-2px, 1px); }
+}
+
+/* ---------- data marquee (the one loud ticker) ---------- */
+.marquee {
+  overflow: hidden;
+  border-top: 1px solid rgba(252, 238, 10, 0.3);
+  border-bottom: 1px solid rgba(252, 238, 10, 0.3);
+  background: rgba(252, 238, 10, 0.05);
+}
+.marquee__track {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 9px 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.3em;
+  color: theme("colors.hazard");
+  animation: marquee-scroll 22s linear infinite;
+}
+.marquee__track > span {
+  margin: 0 26px;
+  opacity: 0.72;
+}
+@keyframes marquee-scroll {
+  to { transform: translateX(-50%); }
+}
+
+/* ---------- work list (Krome hash-ID rows) ---------- */
+.work-row {
+  border-bottom: 1px solid theme("colors.border");
+}
+.work-row > summary {
+  display: grid;
+  grid-template-columns: 52px 1fr auto auto auto;
+  gap: 22px;
+  align-items: center;
+  padding: 20px 8px;
+  cursor: pointer;
+  list-style: none;
+  transition: background 0.18s ease, padding-left 0.18s ease;
+}
+.work-row > summary::-webkit-details-marker { display: none; }
+.work-row > summary:hover {
+  background: theme("colors.surface-alt");
+  padding-left: 20px;
+}
+.work-row[open] > summary {
+  background: theme("colors.surface-alt");
+  padding-left: 20px;
+}
+.work-row .work-idx {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: theme("colors.muted");
+}
+.work-row .work-title {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #fff;
+  font-size: clamp(1.4rem, 3vw, 2.1rem);
+  line-height: 1;
+  transition: color 0.18s ease;
+}
+.work-row > summary:hover .work-title,
+.work-row[open] .work-title {
+  color: theme("colors.hazard");
+}
+.work-row .work-cat {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: theme("colors.muted");
+  background: transparent;
+  border: 1px solid theme("colors.border");
+  padding: 3px 8px;
+  border-radius: 2px;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.work-row > summary:hover .work-cat,
+.work-row[open] .work-cat {
+  background: theme("colors.hazard");
+  border-color: theme("colors.hazard");
+  color: #0a0a07;
+}
+.work-row .work-hash {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: theme("colors.muted");
+}
+.work-row .work-arrow {
+  font-family: var(--font-mono);
+  color: theme("colors.hazard");
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: 0.18s ease;
+}
+.work-row > summary:hover .work-arrow { opacity: 1; transform: none; }
+.work-row[open] .work-arrow { opacity: 1; transform: rotate(90deg); }
+
+.work-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 28px;
+  padding: 8px 8px 34px 74px;
+  align-items: start;
+}
+/* Every project's media sits in one uniform frame, so the dropdown is
+   the same shape regardless of the source image's real dimensions — and
+   the height is known before the image loads (no reflow, smooth open). */
+.work-media {
+  aspect-ratio: 16 / 10;
+  max-height: 360px;
+  background: #06060a;
+  border: 1px solid theme("colors.border");
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.work-media img,
+.work-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Panel fade in/out is driven by the WorkList script (Web Animations
+   API) so it stays in sync with the height animation on open AND close. */
+
+@media (max-width: 800px) {
+  .work-row > summary {
+    grid-template-columns: 34px 1fr auto;
+    gap: 12px;
+  }
+  .work-row .work-hash,
+  .work-row .work-arrow { display: none; }
+  .work-panel {
+    grid-template-columns: 1fr;
+    padding-left: 8px;
+    gap: 16px;
+  }
+}
+
+/* ---------- FX toggle (nav) : calmer read on demand ---------- */
+.fx-off .hud-scanlines {
+  display: none;
+}
+.fx-off .glitch::before,
+.fx-off .glitch::after {
+  display: none;
+}
+.fx-off .status-dot,
+.fx-off .marquee__track {
+  animation: none;
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .status-dot,
+  .glitch::before,
+  .glitch::after,
+  .marquee__track {
+    animation: none;
+  }
+  .glitch::before,
+  .glitch::after { opacity: 0; }
+}

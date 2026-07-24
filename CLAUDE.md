@@ -1,69 +1,106 @@
 # BAMP's Website
 
-Bryan's personal portfolio website — a dark, space-themed showcase of projects, bio, and contact info. Deployed on **Vercel** at bamp.codes.
+Bryan's personal portfolio — a dark, **Cyberpunk 2077 / Edgerunners–themed**
+showcase of projects, bio, and contact info. Deployed on **Vercel** at
+bamp.codes.
+
+> **Current design direction lives in [`docs/DESIGN_DIRECTION.md`](docs/DESIGN_DIRECTION.md)**
+> ("Protocol // Krome" — a flat, wodniack.dev-inspired editorial page).
+> That doc is the source of truth for look & feel; this file covers the
+> engineering setup. The earlier 3D city-descent concept
+> (`docs/REFACTOR_VISION.md`) was retired 2026-07-21.
 
 ## Tech Stack
 
 - **Monorepo**: pnpm v9 + Turborepo v2
-- **Framework**: Next.js 14 (App Router) + React 18 + TypeScript 5.4 (strict)
+- **Framework**: Astro 5 (static output) + TypeScript 5.4 (strict). No UI
+  framework — pages are `.astro` with small inline `<script>` islands.
 - **Styling**: Tailwind CSS 3.4 + PostCSS + Autoprefixer
-- **Testing**: Vitest (unit), Playwright (E2E), @axe-core/playwright (a11y)
-- **Linting**: ESLint (next/core-web-vitals, jsx-a11y), Prettier w/ Tailwind plugin
-- **Monitoring**: Sentry, Vercel Analytics & Speed Insights
+- **Smooth scroll**: Lenis (`src/lib/scroll.ts`), disabled under
+  `prefers-reduced-motion`
+- **Linting / format**: ESLint (shared `packages/eslint-config`) + Prettier
+  (with `prettier-plugin-tailwindcss`)
+- **Testing**: Vitest / Playwright scaffolding at the workspace root
+  (`turbo test` / `test:e2e`); the web app has no suites yet
 - **Node**: v20
 
 ## Workspace Layout
 
-```
-apps/web/          → Next.js portfolio app (all UI, pages, API routes)
+```text
+apps/web/               → Astro portfolio app (all UI, pages, content)
 packages/eslint-config/ → Shared ESLint config
 packages/tsconfig/      → Shared TS configs (base, nextjs, node)
+docs/DESIGN_DIRECTION.md → Current visual direction (source of truth)
 docs/brand/             → Brand identity documentation
+```
+
+`apps/web/src/`:
+```text
+components/site/  → page sections (SiteNav, Hero, Marquee, WorkList,
+                    AboutSection, ContactSection, SiteFooter, BinaryRule)
+content/          → projects.ts, about.ts, nav.ts (typed content modules)
+layouts/Base.astro → <head>, fonts, HUD frame, smooth-scroll bootstrap
+lib/              → scroll.ts (Lenis), types.ts
+pages/index.astro → composes the single-page site
+styles/global.css → tokens + all cyberpunk effects (scanlines, glitch,
+                    marquee, work-row, corner brackets)
 ```
 
 ## Common Commands
 
 ```bash
 pnpm dev          # Start dev server (localhost:3000)
-pnpm build        # Production build
+pnpm build        # Production build (astro build)
+pnpm typecheck    # astro check
 pnpm lint         # ESLint across workspace
-pnpm typecheck    # tsc --noEmit
-pnpm test         # Vitest unit tests
-pnpm test:e2e     # Playwright E2E tests
-pnpm format       # Prettier format all files
+pnpm test         # Vitest (via turbo)
+pnpm format       # Prettier across the repo
 ```
 
 ## CI Pipeline (GitHub Actions)
 
-Runs on push to `main` and all PRs: lint → typecheck → test → build.
+`.github/workflows/ci.yml` runs on push to `main` and all PRs:
+lint → typecheck → test → build.
 
 ## Design System
 
-### Fonts
-- **Manrope** (sans-serif) — primary body & headings (`--font-manrope`)
-- **DM Mono** (monospace) — code & accent text, weights 300/400/500 (`--font-dm-mono`)
+Full rationale, palette, and type in **`docs/DESIGN_DIRECTION.md`**.
+Tokens are defined in `apps/web/tailwind.config.mjs`; font-family CSS
+vars in `apps/web/src/styles/global.css`.
 
-### Color Palette
-| Token               | Hex       | Usage                        |
-|----------------------|-----------|------------------------------|
-| `primary`            | `#f4f6ff` | Primary text                 |
-| `muted`              | `#9ba4c7` | Secondary/muted text         |
-| `surface`            | `#060608` | Main background              |
-| `surface-alt`        | `#0d0d12` | Elevated surfaces            |
-| `border`             | `#28283c` | Borders & dividers           |
-| `card-title`         | `#ffffff` | Card headings                |
-| `card-body`          | `#d4d8ef` | Card body text               |
-| `accent`             | `#00f6ff` | Cyan accent                  |
-| `accent-secondary`   | `#ff2e2e` | Red accent                   |
-| `brand-core`         | `#f6ea2a` | Yellow/gold brand color      |
-| `section-title-start`| `#f6ea2a` | Heading gradient start (gold)|
-| `section-title-end`  | `#00f6ff` | Heading gradient end (cyan)  |
+### Fonts
+- **Anton** — ultra-bold condensed display caps (`--font-display`,
+  Tailwind `font-display`). Hero, section + work titles, big numbers.
+- **Share Tech Mono** — all HUD/mono (`--font-mono`, `font-mono`): nav,
+  labels, status, binary rules, hash IDs, marquee, stat captions.
+- **Rajdhani** — techno body/UI sans (`--font-body`, `font-body`/`sans`).
+- Loaded via Google Fonts in `layouts/Base.astro`.
+
+### Color Palette (Cyberpunk 2077 / Edgerunners)
+
+| Token                | Hex       | Usage                              |
+|----------------------|-----------|------------------------------------|
+| `surface`            | `#0a0a07` | Warm-black background              |
+| `surface-alt`        | `#111009` | Elevated panels / hover rows       |
+| `border`             | `#23231a` | Warm hairline rules                |
+| `hazard` / `brand-core` | `#fcee0a` | **Primary accent — 2077 yellow** |
+| `accent`             | `#00f0ff` | Cyan (status, secondary)           |
+| `accent-secondary`   | `#ff003c` | Alert red (glitch channel)         |
+| `signal`             | `#00ff9f` | Signal green (available / go)      |
+| `primary`            | `#ece9d8` | Warm off-white body text           |
+| `muted`              | `#86866e` | Dim warm-grey labels               |
+| `card-title`         | `#ffffff` | Headings                           |
+| `card-body`          | `#cfcdba` | Body copy                          |
+| `section-title-start`| `#fcee0a` | Heading gradient start (gold)      |
+| `section-title-end`  | `#00f0ff` | Heading gradient end (cyan)        |
+
+Yellow is the star and appears the most; cyan/green/red are one-job spices.
 
 ### Brand Identity
-- **Event Horizon Ring** symbol — offset ring + dense core + escape arc
-- Dark base with electric accents (cyan/violet)
-- Paired with "BAMP" wordmark in navigation
-- See `docs/brand/symbol-system.md` for full usage rules
+- **`BAMP//`** wordmark + a yellow **✦** spark (hero + favicon).
+- Loud skin, calm spine: 2077 HUD framing over restrained editorial layout.
+- Legacy brand docs in `docs/brand/`; `docs/DESIGN_DIRECTION.md` supersedes
+  them for the site itself.
 
 ### Breakpoints
 - `xs`: 400px, `sm`: 600px, `md`: 800px, `lg`: 992px
@@ -73,17 +110,23 @@ Runs on push to `main` and all PRs: lint → typecheck → test → build.
 
 ## Content Architecture
 
-Content lives in `apps/web/content/` as TypeScript modules:
-- `projects.ts` — project entries (categories: cs, ee-me, drawings)
-- `about.ts` — bio, socials, portrait
+Content lives in `apps/web/src/content/` as typed TypeScript modules:
+- `projects.ts` — project entries (categories: `cs`, `ee-me`, `drawings`)
+- `about.ts` — bio, socials, portrait, skills, education, résumé
 - `nav.ts` — navigation links
 
-Types defined in `apps/web/lib/types.ts`.
+Types defined in `apps/web/src/lib/types.ts`.
 
 ## Key Conventions
 
-- **Accessibility first**: ARIA labels, focus traps, skip links, `prefers-reduced-motion` support
-- **Lazy loading**: images and videos below fold are lazy-loaded with poster frames
-- **Animation**: Intersection Observer for reveals, RAF for scroll-linked effects, CSS for continuous motion. Config in `apps/web/lib/motion.ts`
-- **Image optimization**: Next.js `<Image>` with webp/avif formats
-- **Branch workflow**: feature branches → PR → CI passes → merge to `main`
+- **Accessibility first**: skip link, visible focus, real alt text,
+  keyboard-operable work list (`<details>`), `prefers-reduced-motion`
+  honored for every animation.
+- **Work list**: each project is a `<details>` row that animates open
+  (Web Animations API in `WorkList.astro`); media sits in a uniform
+  fixed-ratio frame so dropdowns are consistent regardless of image size.
+- **Images**: plain `<img loading="lazy">` with `width`/`height` set;
+  keep those attributes accurate to reserve layout space.
+- **Effects**: CSS-driven (scanlines, glitch, marquee), all guarded by
+  `prefers-reduced-motion` and toggleable via the nav **FX** switch.
+- **Branch workflow**: feature branches → PR → CI passes → merge to `main`.

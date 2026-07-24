@@ -1,0 +1,29 @@
+---
+import Base from "@/layouts/Base.astro";
+import SiteNav from "@/components/site/SiteNav.astro";
+import Hero from "@/components/site/Hero.astro";
+import Marquee from "@/components/site/Marquee.astro";
+import WorkList from "@/components/site/WorkList.astro";
+import AboutSection from "@/components/site/AboutSection.astro";
+import ContactSection from "@/components/site/ContactSection.astro";
+import SiteFooter from "@/components/site/SiteFooter.astro";
+---
+
+<Base>
+  <SiteNav />
+
+  <main>
+    <div class="mx-auto max-w-6xl">
+      <Hero />
+    </div>
+
+    <Marquee />
+
+    <div class="mx-auto flex max-w-6xl flex-col gap-8 pt-8">
+      <WorkList />
+      <AboutSection />
+      <ContactSection />
+      <SiteFooter />
+    </div>
+  </main>
+</Base>
