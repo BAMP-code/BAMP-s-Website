@@ -19,6 +19,14 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#0a0a07" />
+    <script is:inline>
+      // Apply the saved "FX off" preference before first paint so users who
+      // disabled effects don't see a flash of scanlines/glitch on load.
+      try {
+        if (localStorage.getItem("bamp-fx") === "off")
+          document.documentElement.classList.add("fx-off");
+      } catch (e) {}
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />

@@ -36,12 +36,29 @@ export function initScroll() {
     .querySelectorAll<HTMLAnchorElement>('a[href^="#"]')
     .forEach((anchor) => {
       anchor.addEventListener("click", (event) => {
+        // Let modified / non-primary clicks (open in new tab, etc.) behave natively.
+        if (
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        )
+          return;
         const hash = anchor.getAttribute("href");
         if (!hash || hash === "#") return;
         const target = document.querySelector(hash);
-        if (!target) return;
+        if (!(target instanceof HTMLElement)) return;
         event.preventDefault();
-        lenis?.scrollTo(target as HTMLElement);
+        // Keep the fragment in the URL/history so Back works and links are shareable.
+        history.pushState(null, "", hash);
+        lenis?.scrollTo(target, {
+          onComplete: () => {
+            // Move keyboard focus to the target so skip links (e.g. #work) work.
+            target.setAttribute("tabindex", "-1");
+            target.focus({ preventScroll: true });
+          },
+        });
       });
     });
 }

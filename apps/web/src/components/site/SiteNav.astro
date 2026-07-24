@@ -56,7 +56,9 @@ const links = [
     btn?.setAttribute("aria-pressed", off ? "true" : "false");
   }
 
-  apply(localStorage.getItem(KEY) === "off");
+  // Initial fx-off state is applied in <head> before paint (see Base.astro),
+  // so here we only reflect the current class in the button UI.
+  apply(root.classList.contains("fx-off"));
 
   btn?.addEventListener("click", () => {
     const off = !root.classList.contains("fx-off");

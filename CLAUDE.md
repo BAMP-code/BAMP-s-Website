@@ -26,7 +26,7 @@ bamp.codes.
 
 ## Workspace Layout
 
-```
+```text
 apps/web/               → Astro portfolio app (all UI, pages, content)
 packages/eslint-config/ → Shared ESLint config
 packages/tsconfig/      → Shared TS configs (base, nextjs, node)
@@ -35,7 +35,7 @@ docs/brand/             → Brand identity documentation
 ```
 
 `apps/web/src/`:
-```
+```text
 components/site/  → page sections (SiteNav, Hero, Marquee, WorkList,
                     AboutSection, ContactSection, SiteFooter, BinaryRule)
 content/          → projects.ts, about.ts, nav.ts (typed content modules)
@@ -77,6 +77,7 @@ vars in `apps/web/src/styles/global.css`.
 - Loaded via Google Fonts in `layouts/Base.astro`.
 
 ### Color Palette (Cyberpunk 2077 / Edgerunners)
+
 | Token                | Hex       | Usage                              |
 |----------------------|-----------|------------------------------------|
 | `surface`            | `#0a0a07` | Warm-black background              |
