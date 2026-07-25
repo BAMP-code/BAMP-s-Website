@@ -26,6 +26,14 @@ const {
         if (localStorage.getItem("bamp-fx") === "off")
           document.documentElement.classList.add("fx-off");
       } catch (e) {}
+      // Flag motion-driven elements (see lib/motion.ts) as JS-animated
+      // before first paint, so their CSS pre-hidden state never flashes
+      // visible-then-hidden. Reduced-motion users skip this entirely and
+      // keep the plain, fully-visible layout.
+      try {
+        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+          document.documentElement.classList.add("js-motion");
+      } catch (e) {}
     </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta property="og:title" content={title} />
@@ -53,7 +61,9 @@ const {
 
     <script>
       import { initScroll } from "@/lib/scroll";
+      import { initMotion } from "@/lib/motion";
       initScroll();
+      initMotion();
     </script>
   </body>
 </html>

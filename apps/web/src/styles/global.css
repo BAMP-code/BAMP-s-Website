@@ -95,6 +95,21 @@ body {
 .hud-corner--bl { bottom: 12px; left: 12px; border-right: 0; border-top: 0; }
 .hud-corner--br { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
 
+/* ---------- anime.js motion (lib/motion.ts) ---------- */
+/* Pre-hidden state for JS-animated elements, only applied once
+   .js-motion lands on <html> (before first paint — see Base.astro).
+   No-JS and reduced-motion visitors never get this class, so they see
+   the plain, fully-visible layout by default. */
+.js-motion .reveal,
+.js-motion .hero-boot {
+  opacity: 0;
+  transform: translateY(24px);
+}
+.js-motion .hud-corner {
+  opacity: 0;
+  transform: scale(0.6);
+}
+
 /* ---------- typography helpers ---------- */
 .font-display {
   font-family: var(--font-display);
