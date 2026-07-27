@@ -15,6 +15,8 @@ bamp.codes.
 - **Monorepo**: pnpm v9 + Turborepo v2
 - **Framework**: Astro 5 (static output) + TypeScript 5.4 (strict). No UI
   framework — pages are `.astro` with small inline `<script>` islands.
+- **Project data**: Supabase (Postgres), fetched at build time and
+  Zod-validated (`src/lib/projects.ts`) — see "Content Architecture" below.
 - **Styling**: Tailwind CSS 3.4 + PostCSS + Autoprefixer
 - **Smooth scroll**: Lenis (`src/lib/scroll.ts`), disabled under
   `prefers-reduced-motion`
@@ -38,12 +40,16 @@ docs/brand/             → Brand identity documentation
 ```text
 components/site/  → page sections (SiteNav, Hero, Marquee, WorkList,
                     AboutSection, ContactSection, SiteFooter, BinaryRule)
-content/          → projects.ts, about.ts, nav.ts (typed content modules)
+content/          → about.ts, nav.ts (typed content modules; projects
+                    live in Supabase — see Content Architecture)
 layouts/Base.astro → <head>, fonts, HUD frame, smooth-scroll bootstrap
-lib/              → scroll.ts (Lenis), types.ts
+lib/              → scroll.ts (Lenis), types.ts, supabase.ts (client),
+                    projects.ts (Zod-validated data access)
 pages/index.astro → composes the single-page site
 styles/global.css → tokens + all cyberpunk effects (scanlines, glitch,
                     marquee, work-row, corner brackets)
+supabase/schema.sql → table schema, RLS policies, seed data — run once
+                    in the Supabase SQL editor
 ```
 
 ## Common Commands
@@ -110,12 +116,24 @@ Yellow is the star and appears the most; cyan/green/red are one-job spices.
 
 ## Content Architecture
 
-Content lives in `apps/web/src/content/` as typed TypeScript modules:
-- `projects.ts` — project entries (categories: `cs`, `ee-me`, `drawings`)
+**Projects and categories live in Supabase**, not in the codebase —
+`apps/web/src/lib/projects.ts` fetches them at build time via
+`apps/web/src/lib/supabase.ts` and validates every row with Zod
+(`supabase/schema.sql` has the table definitions, RLS policies, and
+seed data). Categories are just rows in a `categories` table — add one
+in the Supabase dashboard and it shows up as a work-list filter pill
+with zero code changes. Requires `SUPABASE_URL` / `SUPABASE_ANON_KEY`
+in `apps/web/.env` (see `.env.example`) and in Vercel's project env
+vars; the build fails loudly if they're missing or a row doesn't match
+the expected shape — there's no hardcoded fallback data.
+
+Everything else still lives in `apps/web/src/content/` as typed
+TypeScript modules:
 - `about.ts` — bio, socials, portrait, skills, education, résumé
 - `nav.ts` — navigation links
 
-Types defined in `apps/web/src/lib/types.ts`.
+Types defined in `apps/web/src/lib/types.ts` (project/category types
+are inferred from the Zod schema in `lib/projects.ts` instead).
 
 ## Key Conventions
 
@@ -125,6 +143,9 @@ Types defined in `apps/web/src/lib/types.ts`.
 - **Work list**: each project is a `<details>` row that animates open
   (Web Animations API in `WorkList.astro`); media sits in a uniform
   fixed-ratio frame so dropdowns are consistent regardless of image size.
+  Category filter pills above the list are generated from whatever
+  categories exist in Supabase and filter client-side (all project data
+  is already baked into the page at build time — no re-fetch on filter).
 - **Images**: plain `<img loading="lazy">` with `width`/`height` set;
   keep those attributes accurate to reserve layout space.
 - **Effects**: CSS-driven (scanlines, glitch, marquee), all guarded by

@@ -1,10 +1,13 @@
 ---
 import { about } from "@/content/about";
+import { getProjects, getCategories } from "@/lib/projects";
 import BinaryRule from "./BinaryRule.astro";
 
+const [projects, categories] = await Promise.all([getProjects(), getCategories()]);
+
 const stats = [
-  { n: "10+", l: "Shipped projects" },
-  { n: "03", l: "Disciplines" },
+  { n: `${projects.length}`, l: "Shipped projects" },
+  { n: String(categories.length).padStart(2, "0"), l: "Disciplines" },
   { n: "AI", l: "Concentration" },
   { n: "∞", l: "Coffee / commit" },
 ];
