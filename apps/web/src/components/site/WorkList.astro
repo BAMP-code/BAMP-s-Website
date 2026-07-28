@@ -1,22 +1,17 @@
 ---
-import { projects } from "@/content/projects";
+import { getProjects, getCategories } from "@/lib/projects";
 import BinaryRule from "./BinaryRule.astro";
 
-const categoryLabel: Record<string, string> = {
-  cs: "CS",
-  "ee-me": "EE·ME",
-  drawings: "DRAW",
-};
-
 // Deterministic Night-City hash per project, e.g. #0x9F3·0001/10
-function hashFor(id: string, index: number, total: number): string {
+function hashFor(slug: string, index: number, total: number): string {
   let h = 0;
-  for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) & 0xffff;
+  for (const ch of slug) h = (h * 31 + ch.charCodeAt(0)) & 0xffff;
   const hex = h.toString(16).toUpperCase().padStart(3, "0").slice(0, 3);
   const n = String(index + 1).padStart(4, "0");
   return `#0x${hex}·${n}/${total}`;
 }
 
+const [projects, categories] = await Promise.all([getProjects(), getCategories()]);
 const total = projects.length;
 ---
 
@@ -24,23 +19,51 @@ const total = projects.length;
   <BinaryRule label="Selected Work" class="py-4" />
 
   <div class="flex items-end justify-between gap-4 pb-2 pt-4">
-    <h2 class="font-display text-[clamp(1.6rem,4vw,2.6rem)] leading-none text-card-title">
+    <h2 class="reveal font-display text-[clamp(1.6rem,4vw,2.6rem)] leading-none text-card-title">
       Selected Work
     </h2>
-    <span class="label whitespace-nowrap">
+    <span class="reveal label whitespace-nowrap">
       {total} shipped · 2021—2026
     </span>
+  </div>
+
+  <div
+    id="work-filters"
+    class="reveal flex flex-wrap gap-2 pb-6"
+    role="group"
+    aria-label="Filter work by category"
+  >
+    <button
+      type="button"
+      class="filter-pill rounded-full border border-border px-4 py-1.5 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-muted transition-colors hover:border-hazard hover:text-hazard aria-pressed:border-hazard aria-pressed:bg-hazard aria-pressed:text-surface"
+      data-filter="all"
+      aria-pressed="true"
+    >
+      All
+    </button>
+    {
+      categories.map((c) => (
+        <button
+          type="button"
+          class="filter-pill rounded-full border border-border px-4 py-1.5 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-muted transition-colors hover:border-hazard hover:text-hazard aria-pressed:border-hazard aria-pressed:bg-hazard aria-pressed:text-surface"
+          data-filter={c.slug}
+          aria-pressed="false"
+        >
+          {c.label}
+        </button>
+      ))
+    }
   </div>
 
   <div class="border-t border-border">
     {
       projects.map((p, i) => (
-        <details class="work-row">
+        <details class="work-row reveal" data-category={p.category.slug}>
           <summary>
             <span class="work-idx">{String(i + 1).padStart(2, "0")}</span>
             <span class="work-title">{p.title}</span>
-            <span class="work-cat">{categoryLabel[p.category] ?? p.category}</span>
-            <span class="work-hash">{hashFor(p.id, i, total)}</span>
+            <span class="work-cat">{p.category.label}</span>
+            <span class="work-hash">{hashFor(p.slug, i, total)}</span>
             <span class="work-arrow" aria-hidden="true">↗</span>
           </summary>
           <div class="work-panel">
@@ -176,9 +199,55 @@ const total = projects.length;
     static registry: WorkAccordion[] = [];
   }
 
+  const rows = Array.from(
+    document.querySelectorAll<HTMLDetailsElement>("details.work-row"),
+  );
+
   if (!reduceMotion) {
-    document
-      .querySelectorAll<HTMLDetailsElement>("details.work-row")
-      .forEach((el) => WorkAccordion.registry.push(new WorkAccordion(el)));
+    rows.forEach((el) => WorkAccordion.registry.push(new WorkAccordion(el)));
   }
+
+  // Category filter pills — pure client-side show/hide, since every
+  // project is already baked into the page at build time.
+  const filterBar = document.getElementById("work-filters");
+  const filterButtons = Array.from(
+    filterBar?.querySelectorAll<HTMLButtonElement>("[data-filter]") ?? [],
+  );
+
+  filterButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const filter = btn.dataset.filter ?? "all";
+
+      filterButtons.forEach((b) =>
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false"),
+      );
+
+      rows.forEach((row) => {
+        const matches = filter === "all" || row.dataset.category === filter;
+        if (matches) {
+          row.classList.remove("hidden");
+          return;
+        }
+        if (!row.open) {
+          row.classList.add("hidden");
+          return;
+        }
+        // Let an open row finish its close animation before hiding it,
+        // instead of cutting the collapse off with display:none.
+        const accordion = WorkAccordion.registry.find((a) => a.el === row);
+        if (!accordion) {
+          row.open = false;
+          row.classList.add("hidden");
+          return;
+        }
+        row.addEventListener("toggle", function onToggle() {
+          if (!row.open) {
+            row.classList.add("hidden");
+            row.removeEventListener("toggle", onToggle);
+          }
+        });
+        accordion.shrink();
+      });
+    });
+  });
 </script>

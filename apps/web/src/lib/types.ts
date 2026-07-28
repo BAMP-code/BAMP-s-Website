@@ -1,6 +1,3 @@
-export type ProjectCategory = "cs" | "ee-me" | "drawings";
-export type ProjectStatus = "completed" | "in-progress";
-
 export type MediaAsset = {
   type: "image" | "video";
   src: string;
@@ -10,15 +7,8 @@ export type MediaAsset = {
   poster?: string;
 };
 
-export type Project = {
-  id: string;
-  title: string;
-  status: ProjectStatus;
-  description: string;
-  category: ProjectCategory;
-  media: MediaAsset;
-  links?: { label: string; url: string }[];
-};
+// Project/category types live in lib/projects.ts, inferred from the Zod
+// schema that validates what Supabase actually returns.
 
 export type AboutInfo = {
   name: string;
