@@ -1,5 +1,7 @@
 ---
 import "@/styles/global.css";
+import CustomCursor from "@/components/site/CustomCursor.astro";
+import SectionRail from "@/components/site/SectionRail.astro";
 
 interface Props {
   title?: string;
@@ -50,14 +52,20 @@ const {
   <body class="min-h-screen bg-surface text-primary font-body antialiased">
     <a href="#work" class="skip-link">Skip to work</a>
 
-    <!-- Scanline + corner-bracket HUD frame (fixed, decorative). -->
+    <!-- Scanline + grain + corner-bracket HUD frame (fixed, decorative). -->
     <div class="hud-scanlines" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
     <div class="hud-corner hud-corner--tl" aria-hidden="true"></div>
     <div class="hud-corner hud-corner--tr" aria-hidden="true"></div>
     <div class="hud-corner hud-corner--bl" aria-hidden="true"></div>
     <div class="hud-corner hud-corner--br" aria-hidden="true"></div>
 
-    <slot />
+    <CustomCursor />
+    <SectionRail />
+
+    <div class="page">
+      <slot />
+    </div>
 
     <script>
       import { initScroll } from "@/lib/scroll";

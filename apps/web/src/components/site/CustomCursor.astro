@@ -1,0 +1,72 @@
+---
+// A HUD-style cursor: a dot plus a trailing ring that expands into a
+// labeled crosshair over anything carrying `data-cursor`. Desktop/mouse
+// only (gated on hover:hover + pointer:fine) and skipped entirely under
+// prefers-reduced-motion, so touch and reduced-motion visitors keep the
+// native cursor and pay no runtime cost. `data-magnetic` elements get a
+// small cursor-proximity nudge, released on mouseleave.
+---
+
+<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+<div class="cursor-label" id="cursorLabel" aria-hidden="true"></div>
+
+<script>
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const hoverFine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+  if (hoverFine && !reduceMotion) {
+    document.body.classList.add("has-custom-cursor");
+
+    const dot = document.getElementById("cursorDot") as HTMLElement;
+    const ring = document.getElementById("cursorRing") as HTMLElement;
+    const label = document.getElementById("cursorLabel") as HTMLElement;
+
+    let rx = 0,
+      ry = 0,
+      tx = 0,
+      ty = 0;
+
+    window.addEventListener("mousemove", (e) => {
+      dot.style.left = `${e.clientX}px`;
+      dot.style.top = `${e.clientY}px`;
+      tx = e.clientX;
+      ty = e.clientY;
+      label.style.left = `${e.clientX + 24}px`;
+      label.style.top = `${e.clientY + 24}px`;
+    });
+
+    function loop() {
+      rx += (tx - rx) * 0.18;
+      ry += (ty - ry) * 0.18;
+      ring.style.left = `${rx}px`;
+      ring.style.top = `${ry}px`;
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    document.querySelectorAll<HTMLElement>("[data-cursor]").forEach((el) => {
+      el.addEventListener("mouseenter", () => {
+        ring.classList.add("is-active");
+        label.textContent = el.dataset.cursor ?? "";
+        label.classList.add("is-visible");
+      });
+      el.addEventListener("mouseleave", () => {
+        ring.classList.remove("is-active");
+        label.classList.remove("is-visible");
+      });
+    });
+
+    document.querySelectorAll<HTMLElement>("[data-magnetic]").forEach((el) => {
+      el.addEventListener("mousemove", (e) => {
+        const r = el.getBoundingClientRect();
+        const x = e.clientX - r.left - r.width / 2;
+        const y = e.clientY - r.top - r.height / 2;
+        el.style.transform = `translate(${x * 0.28}px, ${y * 0.32}px)`;
+      });
+      el.addEventListener("mouseleave", () => {
+        el.style.transform = "";
+      });
+    });
+  }
+</script>

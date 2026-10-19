@@ -18,6 +18,9 @@ const projectRowSchema = z.object({
   slug: z.string(),
   title: z.string(),
   description: z.string(),
+  case_body: z.string(),
+  case_close: z.string(),
+  tech_tags: z.array(z.string()),
   status: z.enum(["completed", "in-progress"]),
   media_type: z.enum(["image", "video"]),
   media_src: z.string(),
@@ -35,6 +38,9 @@ export type Project = {
   slug: string;
   title: string;
   description: string;
+  caseBody: string;
+  caseClose: string;
+  techTags: string[];
   status: "completed" | "in-progress";
   category: Category;
   media: {
@@ -82,6 +88,9 @@ async function fetchProjects(): Promise<Project[]> {
       slug: row.slug,
       title: row.title,
       description: row.description,
+      caseBody: row.case_body,
+      caseClose: row.case_close,
+      techTags: row.tech_tags,
       status: row.status,
       category: row.categories,
       media: {

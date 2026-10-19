@@ -95,6 +95,166 @@ body {
 .hud-corner--bl { bottom: 12px; left: 12px; border-right: 0; border-top: 0; }
 .hud-corner--br { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
 
+/* Faint film-grain overlay for a little more tactile depth under the
+   scanlines. A tiled base64 feTurbulence filter, no raster asset. */
+.grain {
+  position: fixed;
+  inset: -10%;
+  z-index: 91;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.fx-off .grain {
+  display: none;
+}
+
+/* ---------- custom cursor (CustomCursor.astro) ---------- */
+.cursor-dot,
+.cursor-ring,
+.cursor-label {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 999;
+  transform: translate(-50%, -50%);
+}
+/* Only shown once CustomCursor's script confirms a fine pointer and
+   non-reduced motion and adds this class — everyone else (touch,
+   reduced-motion, no-JS) keeps the native cursor and never sees these. */
+body.has-custom-cursor .cursor-dot,
+body.has-custom-cursor .cursor-ring,
+body.has-custom-cursor .cursor-label {
+  display: block;
+}
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: theme("colors.hazard");
+}
+.cursor-ring {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid theme("colors.hazard");
+  mix-blend-mode: difference;
+  transition: width 0.2s ease, height 0.2s ease, background 0.2s ease;
+}
+.cursor-ring.is-active {
+  width: 64px;
+  height: 64px;
+  background: rgba(252, 238, 10, 0.08);
+}
+.cursor-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: theme("colors.surface");
+  background: theme("colors.hazard");
+  padding: 3px 7px;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+.cursor-label.is-visible {
+  opacity: 1;
+}
+body.has-custom-cursor,
+body.has-custom-cursor * {
+  cursor: none !important;
+}
+
+/* ---------- magnetic elements (any [data-magnetic]) ---------- */
+[data-magnetic] {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+/* ---------- HUD section rail (SectionRail.astro) ---------- */
+.rail {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 76px;
+  z-index: 80;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  border-right: 1px solid theme("colors.border");
+  background: rgba(10, 10, 7, 0.4);
+  backdrop-filter: blur(2px);
+}
+.rail__track {
+  position: relative;
+  width: 2px;
+  height: 160px;
+  background: theme("colors.border");
+}
+.rail__fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: theme("colors.hazard");
+  transition: height 0.1s linear;
+}
+.rail__dots {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.rail__dot {
+  width: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.1em;
+  color: #514f3b;
+  transition: color 0.2s ease;
+}
+.rail__dot-mark {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid #514f3b;
+  transition: all 0.2s ease;
+}
+.rail__dot.is-active {
+  color: theme("colors.hazard");
+}
+.rail__dot.is-active .rail__dot-mark {
+  background: theme("colors.hazard");
+  border-color: theme("colors.hazard");
+  box-shadow: 0 0 8px theme("colors.hazard");
+}
+.rail__pct {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: theme("colors.muted");
+  writing-mode: vertical-rl;
+}
+@media (min-width: 1180px) {
+  .rail {
+    display: flex;
+  }
+  .page {
+    padding-left: 76px;
+  }
+}
+
 /* ---------- anime.js motion (lib/motion.ts) ---------- */
 /* Pre-hidden state for JS-animated elements, only applied once
    .js-motion lands on <html> (before first paint — see Base.astro).
