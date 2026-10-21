@@ -3,7 +3,7 @@ import type { AboutInfo } from "@/lib/types";
 export const about: AboutInfo = {
   name: "Bryan",
   headline: "BAMP",
-  bio: "I'm a senior at Stanford University studying Computer Science on the Artificial Intelligence track. I build autonomous AI agents, ML pipelines, and full-stack systems — most recently architecting stateful memory and violation-detection infrastructure at Alterion. Outside of work, I enjoy powerlifting, playing piano, and immersing myself in video games.",
+  bio: "I graduated from Stanford with a CS degree, AI track. Now I'm a founding engineer at Alterion, leading the AI team. Outside of that: powerlifting, piano, and more video games than I'll admit to.",
   portrait: {
     type: "image",
     src: "/images/headshot.JPG",

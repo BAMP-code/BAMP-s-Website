@@ -1,7 +1,11 @@
 ---
 // Top HUD nav. Brand wordmark + section anchors + a real "FX" toggle
 // that mirrors wodniack's contrast toggle: it disables scanlines/glitch
-// for anyone who wants a calmer read, persisted in localStorage.
+// for anyone who wants a calmer read, persisted in localStorage. Also
+// carries a persistent résumé/contact CTA pair so those actions aren't
+// only reachable by scrolling all the way to the footer.
+import { about } from "@/content/about";
+
 const links = [
   { label: "About", href: "#about" },
   { label: "Work", href: "#work" },
@@ -41,6 +45,33 @@ const links = [
     >
       <span aria-hidden="true">◑</span> FX <span id="fx-state" class="text-hazard">ON</span>
     </button>
+
+    {
+      about.resumeUrl && (
+        <a
+          href={about.resumeUrl}
+          download
+          target="_blank"
+          rel="noopener noreferrer"
+          data-magnetic
+          data-cursor="Save"
+          aria-label="Download résumé"
+          class="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-primary transition-colors hover:border-hazard hover:text-hazard"
+        >
+          <span aria-hidden="true">⤓</span>
+          <span class="hidden sm:inline">Résumé</span>
+        </a>
+      )
+    }
+    <a
+      href="#contact"
+      data-magnetic
+      data-cursor="Go"
+      class="inline-flex items-center gap-1.5 rounded-full bg-hazard px-3.5 py-2 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-surface transition-colors hover:bg-[#fff6a3]"
+    >
+      <span class="hidden sm:inline">Let's talk</span>
+      <span aria-hidden="true">→</span>
+    </a>
   </div>
 </nav>
 

@@ -1,5 +1,7 @@
 ---
 import "@/styles/global.css";
+import CustomCursor from "@/components/site/CustomCursor.astro";
+import SectionRail from "@/components/site/SectionRail.astro";
 
 interface Props {
   title?: string;
@@ -26,6 +28,14 @@ const {
         if (localStorage.getItem("bamp-fx") === "off")
           document.documentElement.classList.add("fx-off");
       } catch (e) {}
+      // Flag motion-driven elements (see lib/motion.ts) as JS-animated
+      // before first paint, so their CSS pre-hidden state never flashes
+      // visible-then-hidden. Reduced-motion users skip this entirely and
+      // keep the plain, fully-visible layout.
+      try {
+        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+          document.documentElement.classList.add("js-motion");
+      } catch (e) {}
     </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta property="og:title" content={title} />
@@ -42,18 +52,49 @@ const {
   <body class="min-h-screen bg-surface text-primary font-body antialiased">
     <a href="#work" class="skip-link">Skip to work</a>
 
-    <!-- Scanline + corner-bracket HUD frame (fixed, decorative). -->
+    <!-- Scanline + grain + corner-bracket HUD frame (fixed, decorative). -->
     <div class="hud-scanlines" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
     <div class="hud-corner hud-corner--tl" aria-hidden="true"></div>
     <div class="hud-corner hud-corner--tr" aria-hidden="true"></div>
     <div class="hud-corner hud-corner--bl" aria-hidden="true"></div>
     <div class="hud-corner hud-corner--br" aria-hidden="true"></div>
 
-    <slot />
+    <CustomCursor />
+    <SectionRail />
 
+    <div class="page">
+      <slot />
+    </div>
+
+    <script is:inline>
+      // If the motion module below fails to load or throws (bad network,
+      // runtime error), .js-motion stays on <html> with nothing left to
+      // reveal the content it hides — fail open instead of leaving the
+      // page permanently blank.
+      window.addEventListener(
+        "error",
+        () => document.documentElement.classList.remove("js-motion"),
+        true,
+      );
+      window.addEventListener("unhandledrejection", () =>
+        document.documentElement.classList.remove("js-motion"),
+      );
+    </script>
     <script>
       import { initScroll } from "@/lib/scroll";
-      initScroll();
+      import { initMotion } from "@/lib/motion";
+      try {
+        initScroll();
+      } catch (e) {
+        console.error(e);
+      }
+      try {
+        initMotion();
+      } catch (e) {
+        document.documentElement.classList.remove("js-motion");
+        console.error(e);
+      }
     </script>
   </body>
 </html>

@@ -6,8 +6,8 @@ import BinaryRule from "./BinaryRule.astro";
 const [projects, categories] = await Promise.all([getProjects(), getCategories()]);
 
 const stats = [
-  { n: `${projects.length}`, l: "Shipped projects" },
-  { n: String(categories.length).padStart(2, "0"), l: "Disciplines" },
+  { n: `${projects.length}`, l: "Shipped projects", countTo: projects.length },
+  { n: String(categories.length).padStart(2, "0"), l: "Disciplines", countTo: categories.length, pad: 2 },
   { n: "AI", l: "Concentration" },
   { n: "∞", l: "Coffee / commit" },
 ];
@@ -16,12 +16,12 @@ const stats = [
 <section id="about" class="scroll-mt-20 px-6 sm:px-10">
   <BinaryRule label="Profile" class="py-4" />
 
-  <h2 class="font-display pb-2 pt-4 text-[clamp(1.6rem,4vw,2.6rem)] leading-none text-card-title">
+  <h2 class="reveal font-display pb-2 pt-4 text-[clamp(1.6rem,4vw,2.6rem)] leading-none text-card-title">
     Profile
   </h2>
 
   <div class="grid grid-cols-1 gap-8 pt-6 md:grid-cols-[300px_1fr] md:gap-12">
-    <div class="relative">
+    <div class="reveal relative">
       <img
         src={about.portrait.src}
         alt={about.portrait.alt}
@@ -38,7 +38,7 @@ const stats = [
       </span>
     </div>
 
-    <div class="flex flex-col gap-7">
+    <div class="reveal flex flex-col gap-7">
       <p class="font-body text-lg leading-relaxed text-card-body">
         {about.bio}
       </p>
@@ -70,12 +70,16 @@ const stats = [
       stats.map((s, i) => (
         <div
           class:list={[
-            "px-5 py-8",
+            "reveal px-5 py-8",
             i < 3 && "border-r border-border",
             i < 2 && "border-b md:border-b-0 border-border",
           ]}
         >
-          <dt class="font-display text-[clamp(2rem,5vw,3.4rem)] leading-none text-hazard">
+          <dt
+            class="font-display text-[clamp(2rem,5vw,3.4rem)] leading-none text-hazard"
+            data-count-to={s.countTo}
+            data-pad={s.pad}
+          >
             {s.n}
           </dt>
           <dd class="label mt-3">{s.l}</dd>

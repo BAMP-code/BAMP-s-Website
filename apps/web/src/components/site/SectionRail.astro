@@ -1,0 +1,58 @@
+---
+// Persistent scroll wayfinding for the long single-page scroll: a fill
+// bar tracking overall progress, plus a dot per section that highlights
+// as it comes into view and jumps there on click. Desktop only (see the
+// `.rail` display rule in global.css) — on narrower viewports the sticky
+// top nav is the only wayfinding, consistent with before.
+const sections = [
+  { id: "top", label: "01" },
+  { id: "work", label: "02" },
+  { id: "about", label: "03" },
+  { id: "contact", label: "04" },
+];
+---
+
+<nav class="rail" aria-label="Section progress">
+  <div class="rail__track"><div class="rail__fill" id="railFill"></div></div>
+  <div class="rail__dots">
+    {
+      sections.map((s) => (
+        <a href={`#${s.id}`} class="rail__dot" data-section={s.id}>
+          <span class="rail__dot-mark" />
+          {s.label}
+        </a>
+      ))
+    }
+  </div>
+  <div class="rail__pct" id="railPct">00%</div>
+</nav>
+
+<script>
+  const railFill = document.getElementById("railFill") as HTMLElement;
+  const railPct = document.getElementById("railPct") as HTMLElement;
+  const railDots = Array.from(document.querySelectorAll<HTMLElement>(".rail__dot"));
+  const sectionIds = ["top", "work", "about", "contact"];
+  const sectionEls = sectionIds
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => el !== null);
+
+  function update() {
+    const doc = document.documentElement;
+    const max = doc.scrollHeight - doc.clientHeight;
+    const pct = max > 0 ? Math.min(100, Math.max(0, (doc.scrollTop / max) * 100)) : 0;
+    railFill.style.height = `${pct}%`;
+    railPct.textContent = `${String(Math.round(pct)).padStart(2, "0")}%`;
+
+    let current = sectionEls[0];
+    sectionEls.forEach((sec) => {
+      if (sec.getBoundingClientRect().top <= window.innerHeight * 0.4) current = sec;
+    });
+    railDots.forEach((dot) => {
+      dot.classList.toggle("is-active", current && dot.dataset.section === current.id);
+    });
+  }
+
+  update();
+  window.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("resize", update);
+</script>
