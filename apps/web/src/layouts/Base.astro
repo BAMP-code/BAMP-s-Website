@@ -67,11 +67,34 @@ const {
       <slot />
     </div>
 
+    <script is:inline>
+      // If the motion module below fails to load or throws (bad network,
+      // runtime error), .js-motion stays on <html> with nothing left to
+      // reveal the content it hides — fail open instead of leaving the
+      // page permanently blank.
+      window.addEventListener(
+        "error",
+        () => document.documentElement.classList.remove("js-motion"),
+        true,
+      );
+      window.addEventListener("unhandledrejection", () =>
+        document.documentElement.classList.remove("js-motion"),
+      );
+    </script>
     <script>
       import { initScroll } from "@/lib/scroll";
       import { initMotion } from "@/lib/motion";
-      initScroll();
-      initMotion();
+      try {
+        initScroll();
+      } catch (e) {
+        console.error(e);
+      }
+      try {
+        initMotion();
+      } catch (e) {
+        document.documentElement.classList.remove("js-motion");
+        console.error(e);
+      }
     </script>
   </body>
 </html>

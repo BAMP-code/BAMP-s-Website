@@ -70,5 +70,13 @@ from (
 ) as v(slug, case_body, case_close, tech_tags)
 where projects.slug = v.slug;
 
+-- Guard against a row whose slug isn't in the list above (e.g. a project
+-- added via the dashboard between the first seed and this migration) —
+-- without this, the NOT NULL below would abort the whole migration.
+update projects set
+  case_body = coalesce(case_body, description),
+  case_close = coalesce(case_close, '')
+where case_body is null or case_close is null;
+
 alter table projects alter column case_body set not null;
 alter table projects alter column case_close set not null;
